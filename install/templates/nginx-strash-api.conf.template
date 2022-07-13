@@ -1,0 +1,12 @@
+server{
+    listen 80;
+    server_name ${STRASH_API_ACCCESS_SERVER_NAMES};
+
+    access_log /var/log/nginx/strash-api-kart-access.log;
+    error_log /var/log/nginx/strash-api-kart-error.log;
+
+    location ~ ^/kart/ {
+        rewrite ^/kart/(.*) /$1 break;
+        proxy_pass http://${STRASH_API_ACCCESS_ADDR}:${STRASH_API_ACCESS_PORT};
+    }
+}

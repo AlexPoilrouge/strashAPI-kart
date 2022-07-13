@@ -1,0 +1,12 @@
+{
+  "name": "kart-api",
+  "version": "0.1.0",
+  "description": "strash api for all things kart",
+  "main": "kart.js",
+  "dependencies": {
+    "child-process": "^1.0.2",
+    "express": "^4.18.1",
+    "swagger-jsdoc": "^6.2.1",
+    "swagger-ui-express": "^4.4.0"
+  }
+}

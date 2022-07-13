@@ -1,0 +1,17 @@
+{
+    "PORT": 5029,
+    "ADDRESS": [
+        "strashbot.fr", "193.70.41.86",
+        "localhost", "127.0.0.1"
+    ],
+    "NAMES": [
+        "strashbot", "strash", "here", "us", "home"
+    ],
+    "additionnal_cmd": {
+        "modes": {
+            "type": "local",
+            "cmd": "false",
+            "timeout": 8000
+        }
+    }
+}

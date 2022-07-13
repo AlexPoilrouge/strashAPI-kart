@@ -1,0 +1,44 @@
+export LOCAL_SCRIPT_DIR="$( realpath "$( dirname $0 )" )"
+export ROOT_DIR="$( realpath ${LOCAL_SCRIPT_DIR}/.. )"
+
+
+
+export STRASHBOT_IP_ADDRESS="193.70.41.86"
+export STRASHBOT_GETMODE_CMD_TYPE="local"
+#presumably a "strashbot" user exist when running the install script
+#   (and holds the script below his homedir…) 
+export STRASHBOT_GETMODE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.srb2kart/addon_script.sh\\\" \\\"INFO_SERV\\\""
+
+export TEMPLATE_SRC_STRASHBOT_INFO_JSON="strashbot_info.json.template"
+export TEMPLATE_DEST_STRASHBOT_INFO_JSON="${ROOT_DIR}/config/info/strashbot_info.json"
+
+
+
+export STRASH_API_ACCCESS_ADDR="127.0.0.1"
+export STRASH_API_ACCESS_PORT="6029"
+export STRASH_API_ACCCESS_SERVER_NAMES="strashbot.fr www.strashbot.fr"
+
+export TEMPLATE_SRC_STRASH_API="nginx-strash-api.conf.template"
+export TEMPLATE_DEST_STRASH_API="/etc/nginx/sites-enabled/nginx-strash-api.conf"
+
+
+
+export STRASH_API_SERVICE_USER="strashbot"
+export STRASH_API_SERVICE_WORKDIR="${ROOT_DIR}"
+
+export TEMPLATE_SRC_STRASH_API_SERVICE="strash-api.service.template"
+export TEMPLATE_DEST_STRASH_API_SERVICE="/etc/systemd/system/strash-api.service"
+
+
+
+export CONFIG_API_HOST="localhost"
+export CONFIG_API_BASE_PATH="/kart"
+
+export TEMPLATE_SRC_CONFIG_API="config.json.template"
+export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
+
+
+
+
+
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "CONFIG_API" )

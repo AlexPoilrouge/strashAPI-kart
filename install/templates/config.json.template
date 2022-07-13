@@ -1,0 +1,9 @@
+{
+    "api":
+    {
+        "HOST": "${CONFIG_API_HOST}",
+        "BASE_PATH": "${CONFIG_API_BASE_PATH}"
+    },
+    
+    "PORT": 6029
+}
