@@ -1,0 +1,4 @@
+{
+    "command": "${STRASHBOT_SERVICE_CMD}",
+    "type": "${STRASHBOT_SERVICE_CMD_TYPE}"
+}
