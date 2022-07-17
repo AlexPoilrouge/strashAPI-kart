@@ -134,7 +134,7 @@ function process_args(addr, p=5029){
 }
 
 function about_service(){
-    return _parse_command_obj(service_about.command, 5000).then(result_obj => {
+    return _parse_command_obj(service_cmd, 5000).then(result_obj => {
         if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
             throw { status: "ERROR" }
         }
