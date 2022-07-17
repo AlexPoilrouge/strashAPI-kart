@@ -1,4 +1,5 @@
 {
-    "command": "${STRASHBOT_SERVICE_CMD}",
-    "type": "${STRASHBOT_SERVICE_CMD_TYPE}"
+    "cmd": "${STRASHBOT_SERVICE_CMD}",
+    "type": "${STRASHBOT_SERVICE_CMD_TYPE}",
+    "timeout": 5000
 }
