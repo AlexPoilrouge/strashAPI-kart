@@ -7,7 +7,7 @@ const kart_util= require("./kart_util");
 
 const strashbot_info= require("../config/info/strashbot_info.json");
 const others_info= require("../config/info/others_info.json");
-const service_about= require("../config/service.json");
+const service_cmd= require("../config/service.json");
 
 function _fetch_real_address_and_port(addr, p){
     var address= addr
