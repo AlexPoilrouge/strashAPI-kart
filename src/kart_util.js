@@ -11,7 +11,7 @@ function execute_sh_command(sh_cmd_string, timeout=0){
                         reject(`Error calling sh cmd "${sh_cmd_string}" : ${error} - ${stderr}`)
                     }
                     
-                    resolve(stdout);
+                    resolve(stdout.trim());
                 }
             );
         }
