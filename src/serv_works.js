@@ -7,7 +7,7 @@ const kart_util= require("./kart_util");
 
 const strashbot_info= require("../config/info/strashbot_info.json");
 const others_info= require("../config/info/others_info.json");
-const e = require("express");
+const service_about= require("../config/service.json");
 
 function _fetch_real_address_and_port(addr, p){
     var address= addr
@@ -32,14 +32,23 @@ function _fetch_real_address_and_port(addr, p){
     return { address, port }
 }
 
-function _parse_command_obj_local(cmd_obj){
-    return kart_util.execute_sh_command(cmd_obj.cmd, (cmd_obj.timeout?cmd_obj.timeout:32000))
+function _parse_command_obj_local(cmd_obj, timeout=32000){
+    return kart_util.execute_sh_command(cmd_obj.cmd, (cmd_obj.timeout?cmd_obj.timeout:timeout))
             .then( output => {
                 try {
                     return JSON.parse(output)
                 }
                 catch(e) {
-                    throw { status: "bad_command", error: `Error parsing sh cmd "${cmd_obj.cmd}" output: ${e}`}
+                    if (Boolean(output)){
+                        try {
+                            return { result: `${output}`}
+                        }
+                        catch(e) {
+                            throw { status: "bad_command", error: `Error parsing sh cmd "${cmd_obj.cmd}" - unprocessable output - ${e}`}
+                        }
+                    }
+                    else
+                        throw { status: "bad_command", error: `Error parsing sh cmd "${cmd_obj.cmd}" output: ${e}`}
                 }
             })
             .catch(e => {
@@ -47,7 +56,7 @@ function _parse_command_obj_local(cmd_obj){
             })
 }
 
-function _parse_command_obj_ssh(cmd_obj){
+function _parse_command_obj_ssh(cmd_obj, timeout=32000){
     return new Promise((resolve, reject) => {
         var distant= (Boolean(cmd_obj.machine)?cmd_obj.machine:"localhost")
         var port= (Boolean(cmd_obj.port)?cmd_obj.port:"")
@@ -55,7 +64,7 @@ function _parse_command_obj_ssh(cmd_obj){
 
         let ssh_cmd= `ssh ${Boolean(user)?`${user}@`:""}${distant} ${Boolean(port)?`-p ${port}`:""} ${cmd_obj.cmd}`
 
-        _parse_command_obj(ssh_cmd).then(result_obj => {
+        _parse_command_obj(ssh_cmd, timeout).then(result_obj => {
             resolve(result_obj)
         }).catch(e =>{
             reject(e);
@@ -63,12 +72,12 @@ function _parse_command_obj_ssh(cmd_obj){
     })
 }
 
-function _parse_command_obj(cmd_obj){
+function _parse_command_obj(cmd_obj, timeout=32000){
     if ((!Boolean(cmd_obj.type)) || (cmd_obj.type.toLowerCase()==="local")){
-        return _parse_command_obj_local(cmd_obj)
+        return _parse_command_obj_local(cmd_obj, timeout)
     }
     else if(cmd_obj.type.toLowerCase()==="ssh"){
-        return _parse_command_obj_ssh(cmd_obj)
+        return _parse_command_obj_ssh(cmd_obj, timeout)
     }
 }
 
@@ -124,4 +133,24 @@ function process_args(addr, p=5029){
     })
 }
 
+function about_service(){
+    return _parse_command_obj(service_about.command, 5000).then(result_obj => {
+        if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
+            throw { status: "ERROR" }
+        }
+
+        return {
+            status: `${(['active','ok','up','true','online','running'].includes(result_obj.result.toLowerCase()))?"UP":"DOWN"}`
+        }
+    })
+    .catch(e => {
+        console.log(`[about service - parse command fail] ${e}`)
+
+        return {
+            status: `UNAVAILABLE`
+        }
+    })
+}
+
 module.exports.process_kart_info_args= process_args;
+module.exports.about_kart_service= about_service;

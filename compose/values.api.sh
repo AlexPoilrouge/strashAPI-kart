@@ -31,6 +31,14 @@ export TEMPLATE_DEST_STRASH_API_SERVICE="/etc/systemd/system/strash-api.service"
 
 
 
+export STRASHBOT_SERVICE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.srb2kart/addon_script.sh\\\" \\\"IS_ACTIVE_SERV\\\""
+export STRASHBOT_SERVICE_CMD_TYPE="local"
+
+export TEMPLATE_SRC_STRASHBOT_SERVICE_CMD="service.json.template"
+export TEMPLATE_DEST_STRASHBOT_SERVICE_CMD="${ROOT_DIR}/config/service.json"
+
+
+
 export CONFIG_API_HOST="localhost"
 export CONFIG_API_BASE_PATH="/kart"
 
@@ -41,4 +49,4 @@ export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
 
 
 
-export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "CONFIG_API" )
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" )

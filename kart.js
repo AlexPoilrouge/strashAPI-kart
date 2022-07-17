@@ -2,7 +2,7 @@ const express= require('express');
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUI = require('swagger-ui-express');
 
-const { process_kart_info_args }= require("./src/serv_works")
+const { process_kart_info_args, about_kart_service }= require("./src/serv_works")
 
 const config= require("./config/config.json");
 
@@ -61,5 +61,26 @@ app.get("/info", (req, res) => {
     .catch(err => {
         console.error(`[GET /info - ERROR] ${err}`)
         res.status(400).send(err)
+    })
+});
+
+/**
+ * @swagger
+ * /service:
+ *  get:
+ *      description: on the server, check if kart service is running
+ *      responses:
+ *          200:
+ *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
+ *          400:
+ *              description: an unexpected error has occured
+ *              
+ * */
+app.get("/service", (req, res) => {
+    about_kart_service().then(about => {
+        res.send(about);
+    })
+    .catch(err => {
+        res.status(400).send({status: "ERROR"});
     })
 });
