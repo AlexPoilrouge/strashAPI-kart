@@ -1,4 +1,5 @@
 {
-    "command": "false",
-    "type": "local"
+    "cmd": "false",
+    "type": "local",
+    "timeout": 5000
 }
