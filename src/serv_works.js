@@ -85,7 +85,7 @@ function process_args(addr, p=5029){
         }
         else if(Boolean(others_info.list) && ((others_info.list.length>0))){
             serv_obj= others_info.list.find( obj => {
-                    return (obj.NAMES.includes(address))
+                    return (obj.NAMES.includes(address) || obj.ADDRESS.includes(address))
                 });
         }
 
@@ -106,6 +106,15 @@ function process_args(addr, p=5029){
                 if (Boolean(cmd_res))
                     info[key]= cmd_res
             }
+        }
+
+        if(Boolean(serv_obj) && Boolean(serv_obj.thumbnail)){
+            info.thumbnail= serv_obj.thumbnail
+        }
+
+        if(Boolean(address)){
+            info.address=
+                `${address}${((Boolean(port)) && (port!=5029))?`:${port}`:''}`
         }
 
         return info

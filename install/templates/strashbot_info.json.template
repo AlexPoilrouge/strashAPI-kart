@@ -13,5 +13,6 @@
             "cmd": "${STRASHBOT_GETMODE_CMD}",
             "timeout": 8000
         }
-    }
+    },
+    "thumbnail": "http://strashbot.fr/img/server/active_thumb.png"
 }

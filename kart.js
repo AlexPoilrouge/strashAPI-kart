@@ -15,7 +15,7 @@ const swaggerOptions= {
     swaggerDefinition: {
         info: {
             title: 'kart_api',
-            version: '0.1.0'
+            version: '0.1.1'
         },
         host: config.api.HOST,
         basePath: config.api.BASE_PATH
