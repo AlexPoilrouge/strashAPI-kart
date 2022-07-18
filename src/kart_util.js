@@ -8,7 +8,13 @@ function execute_sh_command(sh_cmd_string, timeout=0){
             child_process.exec(sh_cmd_string, {timeout: timeout},
                 (error, stdout, stderr) => {
                     if (error){
-                        reject(`Error calling sh cmd "${sh_cmd_string}" : ${error} - ${stderr}`)
+                        // reject(`Error calling sh cmd "${sh_cmd_string}" : ${error} - ${stderr}`)
+                        if(error.signal==='SIGTERM'){
+                            reject({status: 'interrupted', error, stdout: stdout.trim(), stderr})
+                        }
+                        else{
+                            reject({status: 'error', error, stdout: stdout.trim(), stderr})
+                        }
                     }
                     
                     resolve(stdout.trim());
@@ -16,7 +22,7 @@ function execute_sh_command(sh_cmd_string, timeout=0){
             );
         }
         catch(e){
-            reject(`Error calling sh cmd "${sh_cmd_string}" : ${e}`)
+            reject({status: 'failure', error: e});
         }
     })
 }

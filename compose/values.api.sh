@@ -31,6 +31,7 @@ export TEMPLATE_DEST_STRASH_API_SERVICE="/etc/systemd/system/strash-api.service"
 
 
 
+# export STRASHBOT_SERVICE_CMD="(echo 'inactive'; false)"
 export STRASHBOT_SERVICE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.srb2kart/addon_script.sh\\\" \\\"IS_ACTIVE_SERV\\\""
 export STRASHBOT_SERVICE_CMD_TYPE="local"
 

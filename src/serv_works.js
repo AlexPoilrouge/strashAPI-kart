@@ -44,15 +44,19 @@ function _parse_command_obj_local(cmd_obj, timeout=32000){
                             return { result: `${output}`}
                         }
                         catch(e) {
-                            throw { status: "bad_command", error: `Error parsing sh cmd "${cmd_obj.cmd}" - unprocessable output - ${e}`}
+                            throw { status: "bad_output_reading", error: `Error parsing sh cmd "${cmd_obj.cmd}" - unprocessable output - ${e}`}
                         }
                     }
                     else
-                        throw { status: "bad_command", error: `Error parsing sh cmd "${cmd_obj.cmd}" output: ${e}`}
+                        throw { status: "bad_output_parsing", error: `Error parsing sh cmd "${cmd_obj.cmd}" output: ${e}`}
                 }
             })
             .catch(e => {
-                throw { status: "bad_command", error: `${Boolean(e.error)?e.error:e}` }
+                if(Boolean(e.status) && e.status==='error'){
+                    throw { status: `cmd_error`, error: e.error, stdout: e.stdout, stderr: e.stderr}
+                }
+                else
+                    throw { status: `cmd_${e.status}`, error: `${Boolean(e.error)?e.error:e}` }
             })
 }
 
@@ -144,7 +148,17 @@ function about_service(){
         }
     })
     .catch(e => {
-        console.log(`[about service - parse command fail] ${e}`)
+        if(Boolean(e.status) && e.status==='cmd_error'
+            && Boolean(e.stdout) && Boolean(e.stdout.toLowerCase)
+            && ['inactive','ko','down','false','offline','dead'].includes(e.stdout.toLowerCase())
+        ){
+            return {status: "DOWN"}
+        }
+        console.log(`[about service - parse command fail] `+
+            `${Boolean(e.status)?(e.status+" - "):''}`+
+            `${(Boolean(e.error) && Boolean(e.error.code))?(`code: ${e.error.code} - `):''}` +
+            `${(Boolean(e.stderr)?e.stderr:'')}`
+        )
 
         return {
             status: `UNAVAILABLE`
