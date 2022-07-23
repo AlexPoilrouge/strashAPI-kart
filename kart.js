@@ -4,6 +4,8 @@ const swaggerUI = require('swagger-ui-express');
 
 const { process_kart_info_args, about_kart_service }= require("./src/serv_works")
 
+const { API_requestClipById }= require("./src/clip/serv_clips")
+
 const config= require("./config/config.json");
 
 
@@ -84,3 +86,25 @@ app.get("/service", (req, res) => {
         res.status(400).send({status: "ERROR"});
     })
 });
+
+/**
+ * @swagger
+ * /clip/{clipId}:
+ *  get:
+ *      description: get info about a clip giving its id
+ *      parameters:
+ *      -   name: clipId
+ *          in: path
+ *          required: true
+ *          schema:
+ *              type: integer
+ *              format: int64
+ *      responses:
+ *          200:
+ *              description: clip lookup succeeded. Returin JSON object providing infos
+ *          204:
+ *              description: clip lookup succeded but no clip matching this id was found
+ *          400:
+ *              description: an error occured during clip lookup
+ */
+app.get("/clip/:clipId", API_requestClipById);

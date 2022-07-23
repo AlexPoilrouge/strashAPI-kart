@@ -52,7 +52,19 @@ export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
 
 
 
+export STRASHBOT_DB_USERNAME="strashbot"
+export STRASHBOT_DB_PASSWORD="Zpas5wordX_"
+export STRASHBOT_DB_URL="localhost"
+export STRASHBOT_DB_NAME="strashbotkarting_db"
+
+export TEMPLATE_SRC_STRASHBOT_DB="mongodb.json.template"
+export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb.json"
+
+
+
+
+
 
 # The elements of this array are the tmeplates modules that take effect by being formated
 #   formated and copied according to previously set variables
-export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" )
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" )

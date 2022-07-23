@@ -1,0 +1,13 @@
+ {
+    "username": "strashbot",
+    "password": "Zpas5wordX_",
+    "host": "localhost",
+    "databases": [
+      {
+         "name": "strashbotkarting_db",
+         "collections": {
+            "clips": "clips"
+         }
+      }
+    ]
+ }

@@ -22,3 +22,19 @@ services:
     container_name: kartapi
     ports:
       - "6029:6029"
+    links:
+      - database:mongo
+
+  database:
+    image: my_mongo:0.0.0
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile.mongodb
+    container_name: my_mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=strashbot
+      - MONGO_INITDB_ROOT_PASSWORD=Zpas5wordX_
+      - MONGO_INITDB_DATABASE=strashbotkarting_db
+
