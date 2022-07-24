@@ -4,7 +4,7 @@ const swaggerUI = require('swagger-ui-express');
 
 const { process_kart_info_args, about_kart_service }= require("./src/serv_works")
 
-const { API_requestClipById }= require("./src/clip/serv_clips")
+const { API_requestClipById, API_requestClipsPages }= require("./src/clip/serv_clips")
 
 const config= require("./config/config.json");
 
@@ -108,3 +108,29 @@ app.get("/service", (req, res) => {
  *              description: an error occured during clip lookup
  */
 app.get("/clip/:clipId", API_requestClipById);
+
+/**
+ * @swagger
+ * /clips:
+ *  get:
+ *      description: get pages of clips
+ *      parameters:
+ *      -   name: perPage
+ *          description: how many clips per page? Default to 32.
+ *          in: query
+ *          type: String
+ *      -   name: pageNum
+ *          description: page number
+ *          in: query
+ *          schema:
+ *              type: interger
+ *              format: int64
+ *      responses:
+ *          200:
+ *              description: success. Returns object including page number and a list of clips
+ *          204:
+ *              description: no clip to show
+ *          400:
+ *              description: an error occured during clip fetch
+ */
+app.get("/clips", API_requestClipsPages);
