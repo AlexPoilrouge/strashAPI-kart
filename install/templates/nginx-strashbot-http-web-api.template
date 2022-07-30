@@ -1,0 +1,5 @@
+
+    location ~ ^/kart/ {
+        rewrite ^/kart/(.*) /$1 break;
+        proxy_pass http://${STRASH_API_ACCCESS_ADDR}:${STRASH_API_ACCESS_PORT};
+    }

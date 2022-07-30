@@ -25,6 +25,8 @@ export STRASH_API_ACCCESS_SERVER_NAMES="strashbot.fr www.strashbot.fr"
 
 export TEMPLATE_SRC_STRASH_API="nginx-strash-api.conf.template"
 export TEMPLATE_DEST_STRASH_API="/etc/nginx/sites-enabled/nginx-strash-api.conf"
+# export TEMPLATE_SRC_STRASH_API="nginx-strashbot-http-web-api.template"
+# export TEMPLATE_DEST_STRASH_API="/etc/nginx/strashbot_web_http_server/nginx-strash-api.conf"
 
 
 
