@@ -1,0 +1,4 @@
+{
+    "api_adress": "${API_TEST_SERVER_ADDR}",
+    "api_root": "${API_TEST_API_ROOT}"
+}

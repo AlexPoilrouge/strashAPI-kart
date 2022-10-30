@@ -1,26 +1,45 @@
 const express= require('express');
+const bodyParser= require('body-parser');
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUI = require('swagger-ui-express');
 
-const { process_kart_info_args, about_kart_service }= require("./src/serv_works")
+const { process_kart_info_args, about_kart_service }= require("./src/serv_works");
 
-const { API_requestClipById, API_requestClipsPages }= require("./src/clip/serv_clips")
+const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
+
+const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
+
 
 const config= require("./config/config.json");
 
 
 const app= express();
 
+// support parsing of application/json type post data
+app.use(bodyParser.json());
+
+//support parsing of application/x-www-form-urlencoded post data
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.listen(config.PORT, ()=>console.log(`listening on ${config.PORT}`));
+
+
 
 const swaggerOptions= {
     swaggerDefinition: {
+        openapi: '3.0.0',
         info: {
             title: 'kart_api',
             version: '0.1.1'
         },
         host: config.api.HOST,
-        basePath: config.api.BASE_PATH
+        basePath: config.api.BASE_PATH,
+        servers: [
+            {
+                url: `http://${config.api.HOST}/${config.api.BASE_PATH}`
+
+            }
+        ]
     },
     apis: ['kart.js']
 }
@@ -48,7 +67,7 @@ app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
  *      responses:
  *          200:
  *              description: info found
- *          400:
+ *          500:
  *              description: an error occurred while fetching infos
  * 
  */
@@ -62,7 +81,7 @@ app.get("/info", (req, res) => {
     })
     .catch(err => {
         console.error(`[GET /info - ERROR] ${err}`)
-        res.status(400).send(err)
+        res.status(500).send(err)
     })
 });
 
@@ -74,7 +93,7 @@ app.get("/info", (req, res) => {
  *      responses:
  *          200:
  *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
- *          400:
+ *          500:
  *              description: an unexpected error has occured
  *              
  * */
@@ -83,7 +102,7 @@ app.get("/service", (req, res) => {
         res.send(about);
     })
     .catch(err => {
-        res.status(400).send({status: "ERROR"});
+        res.status(500).send({status: "ERROR"});
     })
 });
 
@@ -102,9 +121,9 @@ app.get("/service", (req, res) => {
  *      responses:
  *          200:
  *              description: clip lookup succeeded. Returin JSON object providing infos
- *          204:
+ *          404:
  *              description: clip lookup succeded but no clip matching this id was found
- *          400:
+ *          500:
  *              description: an error occured during clip lookup
  */
 app.get("/clip/:clipId", API_requestClipById);
@@ -130,7 +149,111 @@ app.get("/clip/:clipId", API_requestClipById);
  *              description: success. Returns object including page number and a list of clips
  *          204:
  *              description: no clip to show
- *          400:
+ *          500:
  *              description: an error occured during clip fetch
  */
 app.get("/clips", API_requestClipsPages);
+
+/**
+ * @swagger
+ * /clip/new:
+ *     post:
+ *       description: add a new clip to the database
+ *       parameters:
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                  submitter_id:
+ *                      type: string
+ *                      format: id
+ *                  description:
+ *                      type: string
+ *                      format: text
+ *                  url:
+ *                      type: string
+ *                      format: url
+ *                  timestamp:
+ *                      type: string
+ *                      format: date-time
+ *               required:
+ *                  - submitter_id
+ *                  - url
+ *       responses:
+ *         200:
+ *           description: ok
+ */
+app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
+
+/**
+ * @swagger
+ * /clip/{clipId}:
+ *      put:
+ *          description: edit clip info
+ *          parameters:
+ *            - name: clipId
+ *              in: path
+ *              required: true
+ *              schema:
+ *                  type: integer
+ *                  format: int64
+ *            - name: x-access-token
+ *              in: header
+ *              required: true
+ *              type: string
+ *          requestBody:
+ *              required: false
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              description:
+ *                                  type: string
+ *                              submitter_id:
+ *                                  type: string
+ *                                  format: id
+ *          responses:
+ *              200:
+ *                  description: ok
+ */
+app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
+
+/**
+ * @swagger
+ * /clip/{clipId}:
+ *      delete:
+ *          description: remove clip
+ *          parameters:
+ *              - name: clipId
+ *                in: path
+ *                required: true
+ *                schema:
+ *                  type: integer
+ *                  format: int64
+ *              - name: x-access-token
+ *                in: header
+ *                required: true
+ *                type: string
+ *          requestBody:
+ *              required: false
+ *              content:
+ *                  application/json:
+ *                      schema:
+ *                          type: object
+ *                          properties:
+ *                              submitter_id:
+ *                                  type: string
+ *                                  format: id
+ *          responses:
+ *              200:
+ *                  description: ok
+ */
+app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);

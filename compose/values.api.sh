@@ -58,5 +58,20 @@ export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
 
+export AUTH_ADMIN_KEY="9xmj2PMGz8PXnUmhSHdmv6R8jvCsUdeP"
+export AUTH_DISCORD_USER_KEY="5pBrc0rQ9gOYUs1hPMbqtbq1DVYDoRHM"
 
-export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" )
+export TEMPLATE_SRC_AUTH_ADMIN="key.json.template"
+export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"
+
+
+
+export CLIPS_THUMBNAIL_GEN_CMD="ffmpeg -i __url__ -qscale:v __sectime__ -frame:v __farmenum__ -vf scale:__outsize__ __outfilename__"
+
+export TEMPLATE_SRC_CLIPS="clips.json.template"
+export TEMPLATE_DEST_CLIPS="${ROOT_DIR}/config/clips.json.template"
+
+
+
+
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" "AUTH_ADMIN" "CLIPS")

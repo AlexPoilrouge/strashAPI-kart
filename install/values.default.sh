@@ -64,9 +64,24 @@ export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb.json"
 
 
 
+export AUTH_ADMIN_KEY="$( </dev/urandom tr -dc '0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN' | head -c32 )"
+export AUTH_DISCORD_USER_KEY="$( </dev/urandom tr -dc '0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN' | head -c32 )"
+
+export TEMPLATE_SRC_AUTH_ADMIN="key.json.template"
+export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"
+
+
+
+export CLIPS_THUMBNAIL_GEN_CMD="ffmpeg -i __url__ -qscale:v __sectime__ -frame:v __farmenum__ -vf scale:__outsize__ __outfilename__"
+
+export TEMPLATE_SRC_CLIPS="clips.json.template"
+export TEMPLATE_DEST_CLIPS="${ROOT_DIR}/config/clips.json.template"
+
+
+
 
 
 
 # The elements of this array are the tmeplates modules that take effect by being formated
 #   formated and copied according to previously set variables
-export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" )
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" "AUTH_ADMIN" "CLIPS" )

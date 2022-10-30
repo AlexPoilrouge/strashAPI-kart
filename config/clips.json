@@ -1,0 +1,6 @@
+{
+    "thumbnail": {
+        "thumb_root_dir": "kart_clips_thumb",
+        "command_template": "ffmpeg -i __url__ -qscale:v __sectime__ -frame:v __framenum__ -vf scale:__outsize__ __outfilename__"
+    }
+}

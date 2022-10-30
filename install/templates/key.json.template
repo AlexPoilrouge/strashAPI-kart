@@ -1,0 +1,4 @@
+{
+    "adminkey": "${AUTH_ADMIN_KEY}",
+    "discorduserkey": "${AUTH_DISCORD_USER_KEY}"
+}

@@ -1,0 +1,6 @@
+{
+    "thumbnail": {
+        "thumb_root_dir": "kart_clips_thumb",
+        "command_template": "${CLIPS_THUMBNAIL_GEN_CMD}"
+    }
+}

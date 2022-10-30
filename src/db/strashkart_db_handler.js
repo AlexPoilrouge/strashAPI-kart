@@ -1,22 +1,23 @@
 
-const { MongoDB_handler } = require("./mongo_db_handler")
+const { MongoDB_client_handler, MongoDB_database_handler } = require("./mongo_db_handler")
 
 
 
 
-class StrashKartDB_handler extends MongoDB_handler {
+class StrashKartDB_handler extends MongoDB_database_handler {
     constructor(strashDB_config){
-        super(strashDB_config.username, strashDB_config.password, strashDB_config.host)
+        let db_name= undefined
         try{
-            this._db= strashDB_config.databases[0].name;
+            db_name= strashDB_config.databases[0].name;
         }
         catch(e){
-            this._db= "strashbotkarting_db";
+            db_name= "strashbotkarting_db";
         }
-    }
 
-    db(){
-        return super.db(this._db);
+        super(
+            new MongoDB_client_handler(strashDB_config.username, strashDB_config.password, strashDB_config.host),
+            db_name
+        )
     }
 }
 

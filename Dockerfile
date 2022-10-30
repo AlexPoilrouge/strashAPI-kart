@@ -3,7 +3,8 @@ FROM archlinux:latest
 
 RUN pacman-db-upgrade
 
-RUN pacman -Syyu --noconfirm npm nodejs
+RUN pacman -Syyu --noconfirm npm nodejs \
+                            ffmpeg
 
 
 COPY . /var/api/strash-api
