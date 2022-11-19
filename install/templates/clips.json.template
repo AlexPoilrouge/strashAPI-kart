@@ -1,6 +1,7 @@
 {
     "thumbnail": {
-        "thumb_root_dir": "kart_clips_thumb",
+        "thumb_dirpath": "clip_thumbnails",
+        "http_thumb_root_dirname": "kart_clips_thumb",
         "command_template": "${CLIPS_THUMBNAIL_GEN_CMD}"
     }
 }

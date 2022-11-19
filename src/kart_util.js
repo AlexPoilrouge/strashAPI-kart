@@ -27,4 +27,9 @@ function execute_sh_command(sh_cmd_string, timeout=0){
     })
 }
 
-module.exports.execute_sh_command= execute_sh_command
+let _errHandle= (err, fallbackFn) =>    {  if((Boolean(err)) && Boolean(err.status)) return err;
+    else return fallbackFn(err);
+}
+
+
+module.exports= {execute_sh_command, _errHandle}

@@ -19,9 +19,7 @@ let clip_collection= (
 
 let hereLog= (...args) => {console.log("[kart - clips]", ...args);};
 
-let _errHandle= (err, fallbackFn) =>    {  if((Boolean(err)) && Boolean(err.status)) return err;
-                                            else return fallbackFn(err);
-                                        }
+const _errHandle= require("../kart_util")._errHandle
 
 function check_connect(){
     if(!strash_db_handler.connected){
@@ -162,10 +160,8 @@ async function insertClip(url, submitter_id, description, timestamp){
     return check_connect().then(async result => {
         if(result.response){
             return strash_db_handler.insertOneInCollectionWithIDIncrement(clip_collection,
-                    {type, url, timestamp, description, submitter_id}
+                    {type, url, timestamp, description, submitter_id, thumbnail:""}
                 ).then(resultObj => {
-                    generateThumbnailFromClip(resultObj.insertedId)
-
                     return resultObj;
                 }).catch(err =>{
                     throw _errHandle(err, e => { 
@@ -302,7 +298,7 @@ function _get_submitter_id_from_auth_body(req_body){
     else return req_body.submitter_id
 }
 
-const generateThumbnailFromClip= require("./clip_thumbnail").generateThumbnailFromClip
+const addClipThumbnail= require("./clip_thumbnail").addClipThumbnail
 
 function API_requestInsertClip(req, res){
     var { url, description, timestamp }= req.body
@@ -328,6 +324,8 @@ function API_requestInsertClip(req, res){
     return insertClip(url, submitter_id, description, timestamp).then( resultObj => {
         if(Boolean(resultObj) && Boolean(resultObj.insertedId)) {
             res.status(200).send(resultObj)
+
+            addClipThumbnail(resultObj.insertedId, {dbHandler: strash_db_handler, collection: clip_collection})
         }
         else{
             hereLog(`Error with insert clip query result in strashbot DB - bad result: ${JSON.stringify(resultObj)}`)
@@ -403,6 +401,9 @@ function API_requestEditClip(req, res){
     }
 }
 
+
+const removeClipThumbnail= require("./clip_thumbnail").removeClipThumbnail
+
 function API_requestDeleteClip(req, res){
     // res.status(403).send({status: "not_implemented"})
     var clipId= Number(req.params.clipId)
@@ -430,6 +431,8 @@ function API_requestDeleteClip(req, res){
                 result: resultObj
             })
             hereLog(`deleteClip - deleted clip ${clipId}`)
+
+            removeClipThumbnail(clipId)
         }).catch( err => {
             if (Boolean(err) && Boolean(err.status)){
                 if (err.status==="delete_clip_not_found" || err.status==="delete_bad_result"){
