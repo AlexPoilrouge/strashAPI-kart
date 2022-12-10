@@ -61,7 +61,7 @@ export STRASHBOT_DB_URL="localhost"
 export STRASHBOT_DB_NAME="strashbotkarting_db"
 
 export TEMPLATE_SRC_STRASHBOT_DB="mongodb.json.template"
-export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb.json"
+export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
 
