@@ -36,7 +36,7 @@ const swaggerOptions= {
         basePath: config.api.BASE_PATH,
         servers: [
             {
-                url: `http://${config.api.HOST}/${config.api.BASE_PATH}`
+                url: `http${config.api.HAS_HTTPS?'s':''}://${config.api.HOST}/${config.api.BASE_PATH}`
 
             }
         ]
