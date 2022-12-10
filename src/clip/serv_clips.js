@@ -1,5 +1,6 @@
 
 const { StrashKartDB_handler }= require("../db/strashkart_db_handler")
+const { Check_Connect }= require("../db/mongo_db_handler")
 
 
 const mongo_config= require("../../config/mongodb/mongodb.json");
@@ -21,19 +22,7 @@ let hereLog= (...args) => {console.log("[kart - clips]", ...args);};
 
 const _errHandle= require("../kart_util")._errHandle
 
-function check_connect(){
-    if(!strash_db_handler.connected){
-        return strash_db_handler.connect().then( client => {
-            return {response: true, client};
-        })
-        .catch( err => {
-            throw _errHandle(err, (e) => { return {response: false, client: strash_db_handler, error: err} } );
-        });
-    }
-    return new Promise((res, rej) => {
-        res({response: true, client: strash_db_handler})
-    })
-}
+let check_connect= () => Check_Connect(strash_db_handler)
 
 function getClipById(id){
     return check_connect().then((result) =>{
@@ -450,6 +439,11 @@ function API_requestDeleteClip(req, res){
         })
     }
 }
+
+require('./thumbnail_surveyor').schedule_thumb_survey(
+    require("../../config/clips.json").thumbnail.survey_cron_string,
+    {dbHandler: strash_db_handler, collection: clip_collection}
+)
 
 
 module.exports= {API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip};

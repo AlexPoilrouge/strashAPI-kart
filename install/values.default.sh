@@ -72,7 +72,8 @@ export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"
 
 
 
-export CLIPS_THUMBNAIL_GEN_CMD="ffmpeg -i __url__ -qscale:v __sectime__ -frame:v __farmenum__ -vf scale:__outsize__ __outfilename__"
+export CLIPS_THUMBNAIL_GEN_CMD="ffmpeg -i __url__ -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__"
+export CLIPS_THUMBNAIL_SURVEY_CRON_STRING="* 6 * * *"
 
 export TEMPLATE_SRC_CLIPS="clips.json.template"
 export TEMPLATE_DEST_CLIPS="${ROOT_DIR}/config/clips.json.template"

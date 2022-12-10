@@ -98,7 +98,20 @@ class MongoDB_database_handler{
     }
 }
 
+function Check_Connect(DBHandler){
+    if(!DBHandler.connected){
+        return DBHandler.connect().then( client => {
+            return {response: true, client};
+        })
+        .catch( err => {
+            throw _errHandle(err, (e) => { return {response: false, client: DBHandler, error: err} } );
+        });
+    }
+    return new Promise((res, rej) => {
+        res({response: true, client: DBHandler})
+    })
+}
 
 
-module.exports.MongoDB_client_handler= MongoDB_client_handler;
-module.exports.MongoDB_database_handler= MongoDB_database_handler;
+
+module.exports= {MongoDB_client_handler, MongoDB_database_handler, Check_Connect};

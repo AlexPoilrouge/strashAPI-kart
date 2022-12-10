@@ -257,3 +257,5 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  *                  description: ok
  */
 app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
+
+require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)

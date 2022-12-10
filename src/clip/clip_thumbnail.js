@@ -5,6 +5,8 @@ const config= require("../../config/config.json")
 const path = require("path");
 const fsPromises= require("fs/promises")
 
+const { Check_Connect }= require("../db/mongo_db_handler")
+
 const util_exec_sh= require("../kart_util").execute_sh_command
 
 
@@ -41,20 +43,6 @@ function _getThumbGenerationCmd(id, url, options={}){
 }
 
 
-function check_connect(dbHandler){
-    if(!dbHandler.connected){
-        return dbHandler.connect().then( client => {
-            return {response: true, client};
-        })
-        .catch( err => {
-            throw _errHandle(err, (e) => { return {response: false, client: dbHandler, error: err} } );
-        });
-    }
-    return new Promise((res, rej) => {
-        res({response: true, client: dbHandler})
-    })
-}
-
 
 async function _generateThumbnailFromVideoUrl(id, url, options= {}){
     const cmd_resObj= _getThumbGenerationCmd(id, url, options)
@@ -63,7 +51,7 @@ async function _generateThumbnailFromVideoUrl(id, url, options= {}){
         .then(() => {
             return util_exec_sh( cmd_resObj.cmd, 256000 ).then(res => {
                 hereLog("111")
-                return { status: 'ok', url: `http://${config.api.HOST}/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`}
+                return { status: 'ok', url: `http://${config.api.HOST}/kart/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`}
                 // return check_connect().then( result => {
                 //     hereLog(`222 - ${id}`)
                 //     if(result.response){
@@ -107,7 +95,7 @@ async function _generateThumbnailFromVideoUrl(id, url, options= {}){
 async function generateThumbnailFromClip(clipID, collectionDBHandle){
     hereLog("hello?")
 
-    return check_connect(collectionDBHandle.dbHandler).then((result) =>{
+    return Check_Connect(collectionDBHandle.dbHandler).then((result) =>{
         hereLog("uh")
         if (!Boolean(clipID)){
             throw {status: "no_id", error: "can't find clip without id"};
@@ -168,7 +156,7 @@ async function addClipThumbnail(clipID, collectionDBHandle){
     generateThumbnailFromClip(clipID, collectionDBHandle).then(thumb_res => {
         hereLog("AAAAAAAAAA")
         if(thumb_res.status==='ok'){
-            check_connect(collectionDBHandle.dbHandler).then( result => {
+            Check_Connect(collectionDBHandle.dbHandler).then( result => {
                 hereLog(`222 - ${clipID}`)
                 if(result.response){
                     var query= { _id: clipID}
@@ -226,4 +214,26 @@ async function removeClipThumbnail(clipID){
     })
 }
 
-module.exports= {addClipThumbnail, removeClipThumbnail}
+function setClipsThumbnailFileEntryPoint(app){
+    hereLog(`[entrypoint] setting entry '/${clips_config.thumbnail.http_thumb_root_dirname}/:thumbnail'…`)
+    app.get(`/${clips_config.thumbnail.http_thumb_root_dirname}/:thumbnail`, (req, res) => {
+        try{
+            thumbnail_path= `${path.resolve(`${clips_config.thumbnail.thumb_dirpath}`)}/${req.params.thumbnail}`
+
+            res.sendFile(`${thumbnail_path}`, err => {
+                if(err){
+                    res.status(500).send({status: "internal_query_error"});
+                    hereLog(`[thumbnail_get] error: ${err}`)
+                }
+                else{
+                    hereLog(`[thumbnail_get] fetched ${thumbnail_path}…`)
+                }
+            })
+        } catch(err){
+            res.status(500).send({status: "internal_query_error"});
+            hereLog(`[thumbnail_request] error: ${err}`)
+        }
+    })
+}
+
+module.exports= {addClipThumbnail, removeClipThumbnail, setClipsThumbnailFileEntryPoint}
