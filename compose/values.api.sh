@@ -48,6 +48,31 @@ export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
 
 
 
+export STRASHBOT_DB_USERNAME="strashbot"
+export STRASHBOT_DB_PASSWORD="Zpas5wordX_"
+export STRASHBOT_DB_URL="mongo"
+export STRASHBOT_DB_NAME="strashbotkarting_db"
+
+export TEMPLATE_SRC_STRASHBOT_DB="mongodb.json.template"
+export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
-export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" )
+
+export AUTH_ADMIN_KEY="9xmj2PMGz8PXnUmhSHdmv6R8jvCsUdeP"
+export AUTH_DISCORD_USER_KEY="5pBrc0rQ9gOYUs1hPMbqtbq1DVYDoRHM"
+
+export TEMPLATE_SRC_AUTH_ADMIN="key.json.template"
+export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"
+
+
+
+export CLIPS_THUMBNAIL_GEN_CMD="ffmpeg -i __url__ -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__"
+export CLIPS_THUMBNAIL_SURVEY_CRON_STRING="0 */2 * * * *"
+
+export TEMPLATE_SRC_CLIPS="clips.json.template"
+export TEMPLATE_DEST_CLIPS="${ROOT_DIR}/config/clips.json"
+
+
+
+
+export TEMPLATES=( "STRASHBOT_INFO_JSON" "STRASH_API" "STRASH_API_SERVICE" "STRASHBOT_SERVICE_CMD" "CONFIG_API" "STRASHBOT_DB" "AUTH_ADMIN" "CLIPS")

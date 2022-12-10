@@ -1,0 +1,8 @@
+{
+    "thumbnail": {
+        "thumb_dirpath": "clip_thumbnails",
+        "http_thumb_root_dirname": "clip_thumbnails",
+        "command_template": "${CLIPS_THUMBNAIL_GEN_CMD}",
+        "survey_cron_string": "${CLIPS_THUMBNAIL_SURVEY_CRON_STRING}"
+    }
+}

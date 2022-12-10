@@ -22,3 +22,30 @@ services:
     container_name: kartapi
     ports:
       - "6029:6029"
+    links:
+      - database:mongo
+
+  database:
+    image: mongo:latest
+    container_name: my_mongo
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=strashbot
+      - MONGO_INITDB_ROOT_PASSWORD=Zpas5wordX_
+      - MONGO_INITDB_DATABASE=strashbotkarting_db
+    volumes:
+      - ./mongo-init/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+      - ./db-data:/data/db
+
+  test_kart_api:
+    image: testkartapi:0.0.0
+    build:
+      context: ..
+      dockerfile: test/Dockerfile.api.test
+      args:
+        values_script : compose/values.api_test.sh
+    container_name: testkartapi
+    links:
+      - "reverseproxy:api_server"
+

@@ -1,0 +1,17 @@
+{
+    "devDependencies": {
+        "jest": "^29.1.2"
+    },
+    "dependencies": {
+        "jsonwebtoken": "^8.5.1",
+        "supertest": "^6.3.0"
+    },
+    "scripts": {
+        "test": "jest"
+    },
+    "jest": {
+        "testMatch": [
+            "**/*/**/*.test.js"
+        ]
+    }
+}

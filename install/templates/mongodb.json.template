@@ -1,0 +1,13 @@
+ {
+    "username": "${STRASHBOT_DB_USERNAME}",
+    "password": "${STRASHBOT_DB_PASSWORD}",
+    "host": "${STRASHBOT_DB_URL}",
+    "databases": [
+      {
+         "name": "${STRASHBOT_DB_NAME}",
+         "collections": {
+            "clips": "clips"
+         }
+      }
+    ]
+ }
