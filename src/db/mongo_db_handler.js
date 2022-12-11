@@ -4,9 +4,10 @@ const {MongoClient}= require('mongodb')
 let hereLog= (...args) => {console.log("[kart - DBHandler] ", ...args);};
 
 class MongoDB_client_handler{
-    constructor(username, password, host){
+    constructor(username, password, host, db_name=undefined){
         this._uri= `mongodb://${username}:${password}`
-                + `@${host}:27017`;
+                + `@${host}:27017`
+                + (Boolean(db_name)?`/${db_name}`:'');
         hereLog(`URI: ${this._uri}`)
         this._connected=false;
     }
