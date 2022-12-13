@@ -2,6 +2,7 @@
     "username": "${STRASHBOT_DB_USERNAME}",
     "password": "${STRASHBOT_DB_PASSWORD}",
     "host": "${STRASHBOT_DB_URL}",
+    "main_db": "${STRASHBOT_MAIN_DB_NAME}",
     "databases": [
       {
          "name": "${STRASHBOT_DB_NAME}",

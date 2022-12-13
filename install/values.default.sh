@@ -58,6 +58,7 @@ export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
 export STRASHBOT_DB_USERNAME="strashbot"
 export STRASHBOT_DB_PASSWORD="Zpas5wordX_"
 export STRASHBOT_DB_URL="localhost"
+export STRASHBOT_MAIN_DB_NAME="strashbotkarting_db"
 export STRASHBOT_DB_NAME="strashbotkarting_db"
 
 export TEMPLATE_SRC_STRASHBOT_DB="mongodb.json.template"

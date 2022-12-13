@@ -551,7 +551,7 @@ describe( "clip edit", () => {
                 .put("/clip/183")
                 .set("x-access-token", user_token)
                 .send({description: new_descr})
-                .expect(404)
+                .expect(403)
 
                 await request(`${f_addr}`)
                 .get("/clips")
@@ -692,7 +692,7 @@ describe( "clip delete", () => {
                 .delete("/clip/183")
                 .set("x-access-token", user_token)
                 .send({submitter_id: "684068116019413036"})
-                .expect(404)
+                .expect(403)
 
                 await request(`${f_addr}`)
                 .get("/clips")

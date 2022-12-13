@@ -3,6 +3,10 @@ const {MongoClient}= require('mongodb')
 
 let hereLog= (...args) => {console.log("[kart - DBHandler] ", ...args);};
 
+
+
+const _errHandle= require("../kart_util")._errHandle
+
 class MongoDB_client_handler{
     constructor(username, password, host, db_name=undefined){
         this._uri= `mongodb://${username}:${password}`
