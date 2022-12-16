@@ -347,7 +347,7 @@ function API_requestInsertClip(req, res){
 function API_requestEditClip(req, res){
     var { description }= req.body
     var clipId= Number(req.params.clipId)
-    hereLog(`dnzajdhnezf body: ${JSON.stringify(req.body)}`)
+    
     var submitter_id= _get_submitter_id_from_auth_body(req.body)
     let role= Boolean(req.body.decoded && req.body.decoded.auth)? req.body.decoded.auth.role : undefined
     submitter_id= 
