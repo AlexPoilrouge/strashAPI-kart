@@ -50,7 +50,10 @@ async function _generateThumbnailFromVideoUrl(id, url, options= {}){
     return fsPromises.mkdir(path.resolve(`${options.out_thumb_dirpath}`), {recursive: true, mode:'0755'})
         .then(() => {
             return util_exec_sh( cmd_resObj.cmd, 256000 ).then(res => {
-                return { status: 'ok', url: `http://${config.api.HOST}/kart/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`}
+                return {
+                    status: 'ok',
+                    url: `http${Boolean(config.api.HAS_HTTPS)?'s':''}://${config.api.HOST}/kart/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`
+                }
             }).catch(err => {
                 hereLog(`[thumb_from_url] error generating thumb from vid url '${url}'`)
                 return {status: 'thumb_gen_fail', error: `Thmub gen cmd failed: '${cmd_resObj.cmd}' - ${err.status} - ${err.error}`}
