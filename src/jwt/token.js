@@ -7,7 +7,7 @@ let hereLog= (...args) => {console.log("[kart - token]", ...args);};
 
 function _readkey_from_file(configEntryName){
     let keypath=auth_config[configEntryName];
-
+    
     return fs.readFileSync(path.resolve(keypath))
 }
 
@@ -25,11 +25,11 @@ function API_verifyTokenFromPOSTBody(req, res, next){
             return res.status(401).send({status: "malformed_token", error: "auth info missing or ill formed in token payload"})
         }
         if(unverified.auth.role==="ADMIN"){
-            const decoded= jwt.verify(token, _readkey_from_file('adminkey'), VERIFY_OPTIONS)
+            const decoded= jwt.verify(token, _readkey_from_file('adminPubkey'), VERIFY_OPTIONS)
             req.body.decoded= decoded
         }
         else if(unverified.auth.role==="DISCORD_USER" && Boolean(unverified.auth.id)){
-            const decoded= jwt.verify(token, _readkey_from_fil('discorduserkey'), VERIFY_OPTIONS);
+            const decoded= jwt.verify(token, _readkey_from_file('discorduserPubkey'), VERIFY_OPTIONS);
             req.body.decoded= decoded;
         }
         else{
