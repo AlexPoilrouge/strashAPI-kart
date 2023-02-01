@@ -19,10 +19,6 @@ function _readkey_from_file(configEntryName){
         Update_Keys.last= now
         key= fs.readFileSync(path.resolve(auth_config[configEntryName]))
         Update_Keys.mem_keys[configEntryName]= key
-        hereLog(`fetching key '${configEntryName}' in file ${auth_config[configEntryName]}`)
-    }
-    else{
-        hereLog(`fetching key '${configEntryName}' from memory`)
     }
 
     return key
