@@ -1,8 +1,17 @@
 const jwt= require("jsonwebtoken");
 const auth_config= require("../../config/auth/key.json")
-
+const fs= require('fs')
+const path= require('path')
 
 let hereLog= (...args) => {console.log("[kart - token]", ...args);};
+
+function _readkey_from_file(configEntryName){
+    let keypath=auth_config[configEntryName];
+
+    return fs.readFileSync(path.resolve(keypath))
+}
+
+const VERIFY_OPTIONS= {algorithm: ["RS256"]}
 
 function API_verifyTokenFromPOSTBody(req, res, next){
     hereLog("let's verify some tokenssss")
@@ -16,11 +25,11 @@ function API_verifyTokenFromPOSTBody(req, res, next){
             return res.status(401).send({status: "malformed_token", error: "auth info missing or ill formed in token payload"})
         }
         if(unverified.auth.role==="ADMIN"){
-            const decoded= jwt.verify(token, auth_config.adminkey)
+            const decoded= jwt.verify(token, _readkey_from_file('adminkey'), VERIFY_OPTIONS)
             req.body.decoded= decoded
         }
         else if(unverified.auth.role==="DISCORD_USER" && Boolean(unverified.auth.id)){
-            const decoded= jwt.verify(token, auth_config.discorduserkey);
+            const decoded= jwt.verify(token, _readkey_from_fil('discorduserkey'), VERIFY_OPTIONS);
             req.body.decoded= decoded;
         }
         else{
