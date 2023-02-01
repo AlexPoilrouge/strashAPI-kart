@@ -5,10 +5,27 @@ const path= require('path')
 
 let hereLog= (...args) => {console.log("[kart - token]", ...args);};
 
+let Update_Keys= {
+    mem_keys: {},
+    last: 0,
+    allowed_diff: 300000 //should be 5 min
+}
+
 function _readkey_from_file(configEntryName){
-    let keypath=auth_config[configEntryName];
-    
-    return fs.readFileSync(path.resolve(keypath))
+    var key= Update_Keys.mem_keys[configEntryName]
+
+    let now= Date.now()
+    if(!Boolean(key) || ((now-Update_Keys.last)>Update_Keys.allowed_diff)){
+        Update_Keys.last= now
+        key= fs.readFileSync(path.resolve(auth_config[configEntryName]))
+        Update_Keys.mem_keys[configEntryName]= key
+        hereLog(`fetching key '${configEntryName}' in file ${auth_config[configEntryName]}`)
+    }
+    else{
+        hereLog(`fetching key '${configEntryName}' from memory`)
+    }
+
+    return key
 }
 
 const VERIFY_OPTIONS= {algorithm: ["RS256"]}
