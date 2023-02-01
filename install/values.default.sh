@@ -48,6 +48,7 @@ export TEMPLATE_DEST_STRASHBOT_SERVICE_CMD="${ROOT_DIR}/config/service.json"
 
 export CONFIG_API_HOST="localhost:6029"
 export CONFIG_API_BASE_PATH="/"
+export CONFIG_API_HAS_HTTPS="false"
 
 export TEMPLATE_SRC_CONFIG_API="config.json.template"
 export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
@@ -57,10 +58,11 @@ export TEMPLATE_DEST_CONFIG_API="${ROOT_DIR}/config/config.json"
 export STRASHBOT_DB_USERNAME="strashbot"
 export STRASHBOT_DB_PASSWORD="Zpas5wordX_"
 export STRASHBOT_DB_URL="localhost"
+export STRASHBOT_MAIN_DB_NAME="strashbotkarting_db"
 export STRASHBOT_DB_NAME="strashbotkarting_db"
 
 export TEMPLATE_SRC_STRASHBOT_DB="mongodb.json.template"
-export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb.json"
+export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
 

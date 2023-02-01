@@ -27,9 +27,7 @@ async function check_for_missing_thumbnails(collectionDBHandle){
             await collectionDBHandle.dbHandler.db.collection(collectionDBHandle.collection).find(
                 {thumbnail: ""}
             ).toArray().then(array =>{
-                hereLog("-_-")
                 for(var doc of array){
-                    hereLog(`V_V ${JSON.stringify(doc)}`)
                     thumb_add_queue.push(doc._id)
                 }
             }).catch(err => {
@@ -60,16 +58,12 @@ async function check_for_deletable_thumbnails(collectionDBHandle){
             }
         }
 
-        hereLog(`uuuuutmp_ids: ${tmp_ids}`)
-
         await Check_Connect(collectionDBHandle.dbHandler).then(async result => {
             if(result.response){
                 await collectionDBHandle.dbHandler.db.collection(collectionDBHandle.collection).find(
                     {_id: {$in: tmp_ids}}
                 ).toArray().then(array =>{
-                    hereLog(`tttttt got array: ${array} ${JSON.stringify(array)}`)
                     thumb_del_queue= tmp_ids.filter(id => {return !Boolean(array.find(elmt => {return elmt._id===id}))})
-                    hereLog(`xxxxx = > thumb_del_queue: ${thumb_del_queue}`)
                 }).catch(err => {
                     hereLog(`Error locating ids for thumbnail del in DB - ${err}`)
                 })

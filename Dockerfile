@@ -1,5 +1,6 @@
 FROM archlinux:latest
 
+COPY ./docker/mirrorlist /etc/pacman.d/mirrorlist
 
 RUN pacman-db-upgrade
 

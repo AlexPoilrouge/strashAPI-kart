@@ -1,5 +1,7 @@
 
     location ~ ^/kart/ {
+        # for debug only
+        # add_header Access-Control-Allow-Origin *;
         rewrite ^/kart/(.*) /$1 break;
         proxy_pass http://${STRASH_API_ACCCESS_ADDR}:${STRASH_API_ACCESS_PORT};
     }

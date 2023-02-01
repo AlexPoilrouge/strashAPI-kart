@@ -56,6 +56,7 @@ function getClipPage(perPage=32, pageNum=1){
             pageTotal= Math.ceil((count<0)?0:(count/pp));
 
             return collection.find({}, {projection: {_id: 1, submitter_id: 0}})
+                            .sort({_id: -1})
                             .limit(pp)
                             .skip(pp*(pn-1))
                             .toArray()
@@ -344,10 +345,9 @@ function API_requestInsertClip(req, res){
 }
 
 function API_requestEditClip(req, res){
-    // res.status(403).send({status: "not_implemented"})
     var { description }= req.body
     var clipId= Number(req.params.clipId)
-    hereLog(`dnzajdhnezf body: ${JSON.stringify(req.body)}`)
+    
     var submitter_id= _get_submitter_id_from_auth_body(req.body)
     let role= Boolean(req.body.decoded && req.body.decoded.auth)? req.body.decoded.auth.role : undefined
     submitter_id= 
@@ -375,7 +375,7 @@ function API_requestEditClip(req, res){
         }).catch( err => {
             if (Boolean(err) && Boolean(err.status)){
                 if (err.status==="update_result_not_found" || err.status==="no_update_result"){
-                    res.status(404).send(err)
+                    res.status(403).send(err)
                 }
                 else{
                     hereLog(`[APIrequestClip] error (1) - ${JSON.stringify(err)}`)
@@ -425,7 +425,7 @@ function API_requestDeleteClip(req, res){
         }).catch( err => {
             if (Boolean(err) && Boolean(err.status)){
                 if (err.status==="delete_clip_not_found" || err.status==="delete_bad_result"){
-                    res.status(404).send(err)
+                    res.status(403).send(err)
                 }
                 else{
                     hereLog(`[APIrequestClip] error - ${JSON.stringify(err)}`)

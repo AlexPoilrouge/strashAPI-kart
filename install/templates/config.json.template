@@ -2,7 +2,8 @@
     "api":
     {
         "HOST": "${CONFIG_API_HOST}",
-        "BASE_PATH": "${CONFIG_API_BASE_PATH}"
+        "BASE_PATH": "${CONFIG_API_BASE_PATH}",
+        "HAS_HTTPS": ${CONFIG_API_HAS_HTTPS}
     },
     
     "PORT": 6029

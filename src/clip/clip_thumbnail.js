@@ -50,40 +50,10 @@ async function _generateThumbnailFromVideoUrl(id, url, options= {}){
     return fsPromises.mkdir(path.resolve(`${options.out_thumb_dirpath}`), {recursive: true, mode:'0755'})
         .then(() => {
             return util_exec_sh( cmd_resObj.cmd, 256000 ).then(res => {
-                hereLog("111")
-                return { status: 'ok', url: `http://${config.api.HOST}/kart/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`}
-                // return check_connect().then( result => {
-                //     hereLog(`222 - ${id}`)
-                //     if(result.response){
-                //         var query= { _id: id}
-                //         hereLog("333")
-                //         return strash_db_handler.db.collection('clips').findOneAndUpdate(
-                //             query,
-                //             { $set: { thumbnail: `http://${config.api.HOST}/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}` } },
-                //             { returnDocument: 'after' }
-                //         ).then( resultObj => {
-                //             hereLog("444")
-                //             if (Boolean(resultObj) && Boolean(resultObj.ok)){
-                //                 hereLog(`555 - ${JSON.stringify(resultObj)}`)
-                //                 if (Boolean(resultObj.value)){
-                //                     hereLog("666")
-                //                     return {
-                //                         status: "new_thumb",
-                //                         result: resultObj.value
-                //                     }
-                //                 }
-                //                 else
-                //                     throw { status: 'no_update_result', error: `update on clip ${clipId} failed: no access or doesn't exist`}
-                //             }
-                //             else{
-                //                 throw { status: 'update_result_not_found', error: `couldn't find clip ${clipId} to update` }
-                //             }
-                //         })
-                //     }
-                //     else throw _errHandle(err, e => { 
-                //         return {status: 'db_connect_error', error: `can't connect to DataBase (connection refused) - ${e}`}
-                //     });
-                // })
+                return {
+                    status: 'ok',
+                    url: `http${Boolean(config.api.HAS_HTTPS)?'s':''}://${config.api.HOST}/kart/${clips_config.thumbnail.http_thumb_root_dirname}/${path.basename(cmd_resObj.resultFile)}`
+                }
             }).catch(err => {
                 hereLog(`[thumb_from_url] error generating thumb from vid url '${url}'`)
                 return {status: 'thumb_gen_fail', error: `Thmub gen cmd failed: '${cmd_resObj.cmd}' - ${err.status} - ${err.error}`}
@@ -93,26 +63,18 @@ async function _generateThumbnailFromVideoUrl(id, url, options= {}){
 
 
 async function generateThumbnailFromClip(clipID, collectionDBHandle){
-    hereLog("hello?")
-
     return Check_Connect(collectionDBHandle.dbHandler).then((result) =>{
-        hereLog("uh")
         if (!Boolean(clipID)){
             throw {status: "no_id", error: "can't find clip without id"};
         }
-        hereLog("sup")
         if(result.response){
-            hereLog(`hey - clipID: ${clipID} - result.response: ${JSON.stringify(result.response)}`)
             return collectionDBHandle.dbHandler.db.collection(collectionDBHandle.collection).findOne( {_id: clipID} ).then(clip =>{
-                hereLog("grrrr")                
                 if (clip.type==='youtube'){
-                    hereLog("brrr")
                     let id= _extractVideoPlateformId(clip.type, clip.url)
                     if (Boolean(id)){
                         return {status: 'ok', url: `https://img.youtube.com/vi/${id}/0.jpg`}
                     }
                     else{
-                        hereLog("shhhhh-")
                         throw {status: 'error', error: 'unable to extract id from video url'}
                     }    
                 }
@@ -133,8 +95,6 @@ async function generateThumbnailFromClip(clipID, collectionDBHandle){
                         out_thumb_dirpath: `${clips_config.thumbnail.thumb_dirpath}`
                     }
 
-                    hereLog("Heyyy")
-            
                     return _generateThumbnailFromVideoUrl(clip._id, clip.url, options)
                 }
                 else{
@@ -154,23 +114,17 @@ async function generateThumbnailFromClip(clipID, collectionDBHandle){
 
 async function addClipThumbnail(clipID, collectionDBHandle){
     generateThumbnailFromClip(clipID, collectionDBHandle).then(thumb_res => {
-        hereLog("AAAAAAAAAA")
         if(thumb_res.status==='ok'){
             Check_Connect(collectionDBHandle.dbHandler).then( result => {
-                hereLog(`222 - ${clipID}`)
                 if(result.response){
                     var query= { _id: clipID}
-                    hereLog("333")
                     return collectionDBHandle.dbHandler.db.collection(collectionDBHandle.collection).findOneAndUpdate(
                         query,
                         { $set: { thumbnail: `${thumb_res.url}` } },
                         { returnDocument: 'after' }
                     ).then( resultObj => {
-                        hereLog("444")
                         if (Boolean(resultObj) && Boolean(resultObj.ok)){
-                            hereLog(`555 - ${JSON.stringify(resultObj)}`)
                             if (Boolean(resultObj.value)){
-                                hereLog("666")
                                 return {
                                     status: "new_thumb",
                                     result: resultObj.value

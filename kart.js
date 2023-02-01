@@ -36,7 +36,7 @@ const swaggerOptions= {
         basePath: config.api.BASE_PATH,
         servers: [
             {
-                url: `http://${config.api.HOST}/${config.api.BASE_PATH}`
+                url: `http${config.api.HAS_HTTPS?'s':''}://${config.api.HOST}/${config.api.BASE_PATH}`
 
             }
         ]
@@ -189,6 +189,23 @@ app.get("/clips", API_requestClipsPages);
  *       responses:
  *         200:
  *           description: ok
+<<<<<<< HEAD
+=======
+ *         409:
+ *           description: clip already inserted
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         440:
+ *           description: bad clip data - clip url?
+ *         441:
+ *           description: bad data - submitter invalid?
+ *         500:
+ *           description: error occured server side
+>>>>>>> master
  */
 app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
 
@@ -223,6 +240,17 @@ app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
  *          responses:
  *              200:
  *                  description: ok
+<<<<<<< HEAD
+=======
+ *              400:
+ *                  description: bad request
+ *              401:
+ *                  description: bad token
+ *              403:
+ *                  description: forbidden access
+ *              500:
+ *                  description: error occured server side
+>>>>>>> master
  */
 app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
 
@@ -255,6 +283,17 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  *          responses:
  *              200:
  *                  description: ok
+<<<<<<< HEAD
+=======
+ *              400:
+ *                  description: bad request
+ *              401:
+ *                  description: bad token
+ *              403:
+ *                  description: forbidden access
+ *              500:
+ *                  description: error occured server side
+>>>>>>> master
  */
 app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
 

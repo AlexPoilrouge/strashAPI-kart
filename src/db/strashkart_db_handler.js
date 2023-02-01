@@ -15,7 +15,9 @@ class StrashKartDB_handler extends MongoDB_database_handler {
         }
 
         super(
-            new MongoDB_client_handler(strashDB_config.username, strashDB_config.password, strashDB_config.host),
+            new MongoDB_client_handler(
+                    strashDB_config.username, strashDB_config.password,
+                    strashDB_config.host, strashDB_config.main_db),
             db_name
         )
     }
