@@ -60,8 +60,8 @@ export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
 
-export AUTH_ADMIN_KEY="9xmj2PMGz8PXnUmhSHdmv6R8jvCsUdeP"
-export AUTH_DISCORD_USER_KEY="5pBrc0rQ9gOYUs1hPMbqtbq1DVYDoRHM"
+export AUTH_ADMIN_KEY_FILEPATH="test/config/admin_jwtRS256.key.pub"
+export AUTH_DISCORD_USER_KEY_FILEPATH="test/config/jwtRS256.key.pub"
 
 export TEMPLATE_SRC_AUTH_ADMIN="key.json.template"
 export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"

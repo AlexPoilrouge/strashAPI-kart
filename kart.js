@@ -189,8 +189,6 @@ app.get("/clips", API_requestClipsPages);
  *       responses:
  *         200:
  *           description: ok
-<<<<<<< HEAD
-=======
  *         409:
  *           description: clip already inserted
  *         400:
@@ -205,7 +203,6 @@ app.get("/clips", API_requestClipsPages);
  *           description: bad data - submitter invalid?
  *         500:
  *           description: error occured server side
->>>>>>> master
  */
 app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
 
@@ -240,8 +237,6 @@ app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
  *          responses:
  *              200:
  *                  description: ok
-<<<<<<< HEAD
-=======
  *              400:
  *                  description: bad request
  *              401:
@@ -250,7 +245,6 @@ app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
  *                  description: forbidden access
  *              500:
  *                  description: error occured server side
->>>>>>> master
  */
 app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
 
@@ -283,8 +277,6 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  *          responses:
  *              200:
  *                  description: ok
-<<<<<<< HEAD
-=======
  *              400:
  *                  description: bad request
  *              401:
@@ -293,7 +285,6 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  *                  description: forbidden access
  *              500:
  *                  description: error occured server side
->>>>>>> master
  */
 app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
 

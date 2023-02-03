@@ -1,5 +1,7 @@
 const request= require("supertest");
 const assert = require('assert');
+const fs= require('fs')
+const path= require('path')
 
 const config= require("../config/test_config.json")
 
@@ -125,14 +127,22 @@ const jwt= require("jsonwebtoken");
 
 const keys= require("../config/auth/key.json")
 
+const JWT_SIGN_CONFIG= {
+        expiresIn: "1min",
+        algorithm:  "RS256"
+}
+
+let adminPubkey= fs.readFileSync(path.resolve(__dirname, '../config/admin_jwtRS256.key'))
+let discorduserPubkey= fs.readFileSync(path.resolve(__dirname, '../config/jwtRS256.key'))
+
 const admin_token= jwt.sign(
         {
                 auth : {
                         role: "ADMIN"
                 },
         },
-        keys.adminkey,
-        {expiresIn: "1min"}
+        adminPubkey,
+        JWT_SIGN_CONFIG
 )
 
 const admin_token_id= jwt.sign(
@@ -142,8 +152,8 @@ const admin_token_id= jwt.sign(
                         id: "684068116019413036"
                 },
         },
-        keys.adminkey,
-        {expiresIn: "1min"}
+        adminPubkey,
+        JWT_SIGN_CONFIG
 )
 
 const bad_role_admin_token= jwt.sign(
@@ -152,8 +162,8 @@ const bad_role_admin_token= jwt.sign(
                         role: "ADMIN"
                 },
         },
-        keys.discorduserkey,
-        {expiresIn: "1min"}
+        discorduserPubkey,
+        JWT_SIGN_CONFIG
 )
 
 const user_token= jwt.sign(
@@ -163,8 +173,8 @@ const user_token= jwt.sign(
                         id: "185096597799960577"
                 }
         },
-        keys.discorduserkey,
-        {expiresIn: "1min"}
+        discorduserPubkey,
+        JWT_SIGN_CONFIG
 )
 
 const user_token_no_id= jwt.sign(
@@ -173,8 +183,8 @@ const user_token_no_id= jwt.sign(
                         role: "DISCORD_USER"
                 }
         },
-        keys.discorduserkey,
-        {expiresIn: "1min"}
+        discorduserPubkey,
+        JWT_SIGN_CONFIG
 )
 
 

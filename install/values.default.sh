@@ -66,8 +66,8 @@ export TEMPLATE_DEST_STRASHBOT_DB="${ROOT_DIR}/config/mongodb/mongodb.json"
 
 
 
-export AUTH_ADMIN_KEY="$( </dev/urandom tr -dc '0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN' | head -c32 )"
-export AUTH_DISCORD_USER_KEY="$( </dev/urandom tr -dc '0123456789azertyuiopqsdfghjklmwxcvbnAZERTYUIOPQSDFGHJKLMWXCVBN' | head -c32 )"
+export AUTH_ADMIN_KEY_FILEPATH="config/admin_jwtRS256.key.pub"
+export AUTH_DISCORD_USER_KEY_FILEPATH="config/jwtRS256.key.pub"
 
 export TEMPLATE_SRC_AUTH_ADMIN="key.json.template"
 export TEMPLATE_DEST_AUTH_ADMIN="${ROOT_DIR}/config/auth/key.json"
