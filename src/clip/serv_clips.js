@@ -91,7 +91,7 @@ function getClipTypeFromURL(url){
 
     return  fn(/^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.gif$/, 'gif',
                 fn(/^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.((webm)|(mp4)|(ogg))$/, 'video',
-                    fn(/^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/))|(youtu\.be\/))(.{11})$/, 'youtube',
+                    fn(/^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/|shorts\/))|(youtu\.be\/))(.{11})$/, 'youtube',
                         fn(/^https?\:\/\/(w{3}\.)?streamable\.com\/(.*)?$/, 'streamable.com')
                     )
                 )
@@ -107,7 +107,7 @@ function findClipFromUrl(url){
             if(!Boolean(type=getClipTypeFromURL(url))) throw {status: 'bad_clip_url', error: `unkown type - ${err}`}
 
             if(type==='youtube'){
-                var yt_id= url.match(/^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/))|(youtu\.be\/))(.{11})$/)[6]
+                var yt_id= url.match(/^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/|shorts\/))|(youtu\.be\/))(.{11})$/)[6]
                 return strash_db_handler.db.collection('clips').findOne( {url: {$regex: RegExp(`${yt_id}/*$`) }, type} )
             }
             else{

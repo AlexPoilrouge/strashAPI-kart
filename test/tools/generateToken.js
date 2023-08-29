@@ -1,5 +1,13 @@
 const jwt= require("jsonwebtoken");
 const fs= require('fs')
+const path= require('path')
+
+
+const JWT_SIGN_CONFIG= {
+    expiresIn: "24h",
+    algorithm:  "RS256"
+}
+
 
 function generateToken(keys, objs, outfilebasename, token_prefixes= undefined){
     if (keys.length!==objs.length)
@@ -12,7 +20,7 @@ function generateToken(keys, objs, outfilebasename, token_prefixes= undefined){
         var key= keys[i]
 
         const token= jwt.sign(
-            obj, key, {expiresIn: "24h"}
+            obj, key, JWT_SIGN_CONFIG
         )
 
         if (!Boolean(outfilebasename)){
@@ -39,7 +47,7 @@ function generateToken(keys, objs, outfilebasename, token_prefixes= undefined){
 
 const myArgs = process.argv.slice(2);
 
-var admin_k= Boolean(myArgs[0])? myArgs[0]:"9xmj2PMGz8PXnUmhSHdmv6R8jvCsUdeP"
+var admin_k= fs.readFileSync(path.resolve(__dirname, '../config/admin_jwtRS256.key'))
 var admin_o= { 
     auth : {
         role: "ADMIN",
@@ -47,7 +55,7 @@ var admin_o= {
     }
  }
 
-var user_k= Boolean(myArgs[1])? myArgs[1]:"5pBrc0rQ9gOYUs1hPMbqtbq1DVYDoRHM"
+var user_k= fs.readFileSync(path.resolve(__dirname, '../config/jwtRS256.key'))
 var user_o= { 
     auth : {
         role: "DISCORD_USER",
