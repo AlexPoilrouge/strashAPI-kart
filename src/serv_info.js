@@ -3,7 +3,10 @@
 // with parts left out (addons listing), because not
 // relevant at this time
 // https://github.com/NielsjeNL/srb2kb/blob/main/srb2kpacket.py
-
+//
+// RingRacers Update [27/04/2024]:
+//  I basically made my own edit, so this might shif quite a bit now
+//  from implementationyou might find elsewhere
 
 var udp = require('dgram');
 
@@ -29,38 +32,73 @@ const CONTROLS={
 
 const PK_FORMATS={
     'SERVERINFO': {
-        'format':
-            'B_255/'           +
-            'Bpacketversion/'  +
-            '16sapplication/'  +
-            'Bversion/'        +
-            'Bsubversion/'     +
-            'Bnumberofplayer/' +
-            'Bmaxplayer/'      +
-            'Bgametype/'       +
-            'Bmodifiedgame/'   +
-            'Bcheatsenabled/'  +
-            'Bisdedicated/'    +
-            'Bfileneedednum/'  +
-            'Itime/'           +
-            'Ileveltime/'      +
-            '32sservername/'   +
-            '8smapname/'       +
-            '33smaptitle/'     +
-            '16smapmd5/'       +
-            'Bactnum/'         +
-            'Biszone/'         +
-            '256shttpsource/'  +
-            '*sfileneeded',
+        'header': {
+            'format':
+                'B_255/'           +
+                'Bpacketversion/'  +
+                '16sapplication/'  +
+                'Bversion/'        +
+                'Bsubversion/',
+            'strings': [
+                'application'
+            ]
+        },
+        'srb2k': {
+            'format':
+                'Bnumberofplayer/' +
+                'Bmaxplayer/'      +
+                'Bgametype/'       +
+                'Bmodifiedgame/'   +
+                'Bcheatsenabled/'  +
+                'Bisdedicated/'    +
+                'Bfileneedednum/'  +
+                'Itime/'           +
+                'Ileveltime/'      +
+                '32sservername/'   +
+                '8smapname/'       +
+                '33smaptitle/'     +
+                '16smapmd5/'       +
+                'Bactnum/'         +
+                'Biszone/'         +
+                '256shttpsource/'  +
+                '*sfileneeded',
 
-        'strings': [
-            'application',
-            //'gametypename',
-            'servername',
-            'mapname',
-            'maptitle',
-            'httpsource',
-        ],
+            'strings': [
+                'servername',
+                'mapname',
+                'maptitle',
+                'httpsource',
+            ]
+        },
+        'drrr': {
+            'format':
+                '4Bcommit/'        +
+                'Bnumberofplayer/' +
+                'Bmaxplayer/'      +
+                'Brefusereason/'   +
+                '24sgametypename/' +
+                'Bmodifiedgame/'   +
+                'Bcheatsenabled/'  +
+                'Bkartvars/'       +
+                'Bfileneedednum/'  +
+                'Itime/'           +
+                'Ileveltime/'      +
+                '32sservername/'   +
+                '33smaptitle/'     +
+                '16smapmd5/'       +
+                'Bactnum/'         +
+                'Biszone/'         +
+                '256shttpsource/'  +
+                'Havgpwrlvl/'      +
+                '*sfileneeded',
+    
+            'strings': [
+                'gametypename',
+                'servername',
+                'maptitle',
+                'httpsource',
+            ],
+        },
 
         'minimum': 151,
     },
@@ -175,6 +213,19 @@ class KartServInfo{
         }
     }
 
+    _unpack_integer(buf, offset, readmethod='readUInt8', size=1){
+        var res= undefined
+        if(size>1){
+            res= []
+            for(var i=0; i<size; ++i){
+                res.push( buf[readmethod](offset+(i*size)) )
+            }
+        }
+        else
+            res= buf[readmethod](offset)
+        return res
+    }
+
     _unpack_format(format,buf,offset){
         var match= undefined
         var size= 1
@@ -187,15 +238,18 @@ class KartServInfo{
         var ret= {size: size}
         switch(f){
             case 'B':
-                ret.data= buf.readUInt8(offset)
+                // ret.data= buf.readUInt8(offset)
+                ret.data= this._unpack_integer(buf, offset, 'readUInt8', size)
             break;
             case 'I':
-                ret.data= buf.readUInt32LE(offset)
-                ret.size= 4
+                // ret.data= buf.readUInt32LE(offset)
+                ret.data= this._unpack_integer(buf, offset, 'readUInt32LE', size)
+                ret.size= 4*size
             break;
             case 'H':
-                ret.data= buf.readUInt16LE(offset)
-                ret.size= 2
+                // ret.data= buf.readUInt16LE(offset)
+                ret.data= this._unpack_integer(buf, offset, 'readUInt16LE', size)
+                ret.size= 2*size
             break;
             case 's':
                 var str=""
@@ -223,10 +277,10 @@ class KartServInfo{
                 if( !(/^\d$/.test(c)) && c!=='*' ) break;
             }
             if (unpack_param.includes('*')){
-                unpack_param= `${buf.length-off}`+unpack_param.substr(-1)
+                unpack_param= `${buf.length-off}`+unpack_param.slice(-1)
             }
             var data= this._unpack_format(unpack_param,buf,off)
-            var data_format_name= data_format.substr(unpack_param_len)
+            var data_format_name= data_format.slice(unpack_param_len)
             output[data_format_name]= data.data
 
             off+= data.size
@@ -244,15 +298,15 @@ class KartServInfo{
         else{
             size= s.length
         }
-        return s.substr(0,size)
+        return s.slice(0,size)
     }
 
-    processData(req,buf,offset,n=0){
-        var pkf= PK_FORMATS[req.name]
-        var _n= n*pkf['minimum']
-        if(_n+pkf['minimum']>buf.length){
+    processData(pkf,minimum,buf,offset,n=0){
+        var _n= n*minimum
+        if(_n+minimum>buf.length){
             return false
         }
+        
         var t= this.php_unpack(pkf['format'],buf,offset+_n)
         if ('strings' in pkf){
             for (var s of pkf['strings']){
@@ -278,7 +332,7 @@ class KartServInfo{
         }
         var p_type= String.fromCharCode(buf[6]).charCodeAt(0)
         if(p_type!==req.code){
-            hereLog(`[unpack] bad type (got ${p_type})`)
+            // hereLog(`[unpack] bad type (got ${p_type})`)
             return false
         }
         var pkf= PK_FORMATS[req.name]
@@ -286,7 +340,8 @@ class KartServInfo{
             hereLog("[unpack] unknown format")
             return false
         }
-        if(n<pkf['minimum']){
+        var pkf_min= pkf['minimum']
+        if(n<pkf_min){
             hereLog("[unpack] smaller than minimum")
             return false
         }
@@ -294,23 +349,33 @@ class KartServInfo{
         var res= undefined
         if(req.code===REQUESTS.SERVERINFO.code){
             this.servinfo= undefined
-            this.servinfo= this.processData(req,buf,offset)
-            
-            if(this.servinfo['gametype']===CONTROLS.RACE.code){
-                let speeds= ['Easy','Normal','Hard']
 
-                var c= this.servinfo['isdedicated']
-                var speed= speeds[(c & CONTROLS.SPEEDMASK.code)]
-                this.servinfo['kartspeed']= (Boolean(speed))? speed : 'Too fast'
+            let header= this.processData(pkf['header'],pkf_min,buf,offset)
+            var app_data= {}
+            if(header['application'].toLowerCase()==="ringracers"){
+                app_data= this.processData(pkf['drrr'],pkf_min-20,buf,offset+20)
             }
+            else{
+                app_data= this.processData(pkf['srb2k'],pkf_min-20,buf,offset+20)
+            
+                if(app_data['gametype']===CONTROLS.RACE.code){
+                    let speeds= ['Easy','Normal','Hard']
+
+                    var c= app_data['isdedicated']
+                    var speed= speeds[(c & CONTROLS.SPEEDMASK.code)]
+                    app_data['kartspeed']= (Boolean(speed))? speed : 'Too fast'
+                }
+            }
+
+            this.servinfo= Object.assign({}, header, app_data)
 
             res= this.servinfo
         }
         else if(req.code===REQUESTS.PLAYERINFO.code){
             this.playerinfo= {}
-            var mpk= this.processData(req,buf,offset)
+            var mpk= this.processData(pkf,pkf_min,buf,offset)
             for(var i=0; i<32; ++i){
-                var pk= this.processData(req,buf,offset,i)
+                var pk= this.processData(pkf,pkf_min,buf,offset,i)
                 if(!Boolean(pk)){
                     break;
                 }
@@ -371,7 +436,7 @@ class KartServInfo{
     
     bye(){
         if (Boolean(this.soc)){
-            hereLog("closing...")
+            // hereLog("closing...")
             try{
                 this.soc.close()
             } catch(err){
@@ -410,6 +475,19 @@ class KartServInfo{
         }
         return r
     }
+
+    static CommitAbbrevConver(values){
+        var input= values
+        if((typeof values) === 'string'){
+            input= values.split('').map(c => c.charCodeAt(0))
+        }
+
+        var commitAbbrev_str=""
+        for(var v of input){
+            commitAbbrev_str+= (v).toString(16,2).padStart(2, '0')
+        }
+        return commitAbbrev_str
+    }
 }
 
 function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
@@ -432,6 +510,12 @@ function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
                 if(decolorize){
                     info.server['servername']=KartServInfo.DecolorizeString(
                         info.server['servername']
+                    )
+                }
+                for(var field of ['commit','mapmd5'])
+                if(info.server[field]){
+                    info.server[field]=KartServInfo.CommitAbbrevConver(
+                        info.server[field]
                     )
                 }
                 resolve(info)
