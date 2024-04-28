@@ -3,10 +3,7 @@
 // with parts left out (addons listing), because not
 // relevant at this time
 // https://github.com/NielsjeNL/srb2kb/blob/main/srb2kpacket.py
-//
-// RingRacers Update [27/04/2024]:
-//  I basically made my own edit, so this might shif quite a bit now
-//  from implementationyou might find elsewhere
+
 
 var udp = require('dgram');
 
@@ -28,6 +25,12 @@ const CONTROLS={
     RACE:              {code: 2,    name:"RACE"},
     MATCH:              {code: 3,    name:"MATCH"},
     SPEEDMASK:         {code: 0x03, name:"SPEEDMASK"}
+}
+
+const DRRR_KARTVARS= {
+    IS_DEDICATED_SERVER: 0x40,
+    SPEEDMASK: 0x03,
+    LOTS_OF_ADDONS: 0x20,
 }
 
 const PK_FORMATS={
@@ -488,6 +491,22 @@ class KartServInfo{
         }
         return commitAbbrev_str
     }
+
+    static ProcessDRRRKartvars(kartvars){
+        let input= kartvars
+        if((typeof values) === 'string'){
+            input= parseInt(kartvars)
+        }
+
+        var ret_kartvars_obj= {}
+
+        ret_kartvars_obj.value= input
+        ret_kartvars_obj.isdedicated= Boolean(input & DRRR_KARTVARS.IS_DEDICATED_SERVER)
+        ret_kartvars_obj.gear= (input & DRRR_KARTVARS.SPEEDMASK)+1
+        ret_kartvars_obj.lotsofaddonsflag= Boolean(input & DRRR_KARTVARS.LOTS_OF_ADDONS)
+
+        return ret_kartvars_obj
+    }
 }
 
 function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
@@ -516,6 +535,11 @@ function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
                 if(info.server[field]){
                     info.server[field]=KartServInfo.CommitAbbrevConver(
                         info.server[field]
+                    )
+                }
+                if(info.server['kartvars']){
+                    info.server['kartvars']= KartServInfo.ProcessDRRRKartvars(
+                        info.server['kartvars']
                     )
                 }
                 resolve(info)
