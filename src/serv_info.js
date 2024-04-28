@@ -467,19 +467,24 @@ class KartServInfo{
         this.func_onServerBasicInfos= func
     }
 
-    static DecolorizeString(s){
-        var codes = [
-            "\x80","\x81","\x82","\x83","\x84","\x85","\x86","\x87",
-            "\x88","\x89","\x8a","\x8b","\x8c","\x8d","\x8e","\x8f"
-        ]
-        var r= s
-        for (var code of codes){
-            r= r.replace(code,'')
-        }
-        return r
+    //didn't quite work properly for some reason…
+    // static DecolorizeString(s){
+    //     var codes = [
+    //         "\x80","\x81","\x82","\x83","\x84","\x85","\x86","\x87",
+    //         "\x88","\x89","\x8a","\x8b","\x8c","\x8d","\x8e","\x8f"
+    //     ]
+    //     var r= Buffer.from(s, 'utf-8').toString();
+    //     for (var code of codes){
+    //         r= r.replace(code,'')
+    //     }
+    //     return Buffer.from(r, 'utf-8').toString();
+    // }
+
+    static RemoveNonAsciiFromString(s){
+        return Buffer.from(s.replace(/[\u{0080}-\u{FFFF}]/gu,"")).toString();
     }
 
-    static CommitAbbrevConver(values){
+    static ValuesToHexString(values){
         var input= values
         if((typeof values) === 'string'){
             input= values.split('').map(c => c.charCodeAt(0))
@@ -527,13 +532,14 @@ function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
             }
             else{
                 if(decolorize){
-                    info.server['servername']=KartServInfo.DecolorizeString(
+                    info.server['servername_colorized']= info.server['servername']
+                    info.server['servername']=KartServInfo.RemoveNonAsciiFromString(
                         info.server['servername']
                     )
                 }
                 for(var field of ['commit','mapmd5'])
                 if(info.server[field]){
-                    info.server[field]=KartServInfo.CommitAbbrevConver(
+                    info.server[field]=KartServInfo.ValuesToHexString(
                         info.server[field]
                     )
                 }
