@@ -7,7 +7,7 @@ export STRASHBOT_IP_ADDRESS="193.70.41.86"
 export STRASHBOT_GETMODE_CMD_TYPE="local"
 #presumably a "strashbot" user exist when running the install script
 #   (and holds the script below his homedir…) 
-export STRASHBOT_GETMODE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.srb2kart/addon_script.sh\\\" \\\"INFO_SERV\\\""
+export STRASHBOT_GETMODE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
 
 # naming of variable is important:
 #   - TEMPLATE_SRC_{TEMPALTE_MODULE} to designate name of source template
@@ -38,7 +38,7 @@ export TEMPLATE_DEST_STRASH_API_SERVICE="/etc/systemd/system/strash-api.service"
 
 
 
-export STRASHBOT_SERVICE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.srb2kart/addon_script.sh\\\" \\\"IS_ACTIVE_SERV\\\""
+export STRASHBOT_SERVICE_CMD="sh \\\"$( getent passwd "strashbot" | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"IS_ACTIVE_SERV\\\""
 export STRASHBOT_SERVICE_CMD_TYPE="local"
 
 export TEMPLATE_SRC_STRASHBOT_SERVICE_CMD="service.json.template"
