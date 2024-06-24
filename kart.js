@@ -6,11 +6,15 @@ const swaggerUI = require('swagger-ui-express');
 const { process_kart_info_args, about_kart_service }= require("./src/serv_works");
 
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
+const { API_addons_add }= require("./src/addons/add")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
+const { addon_upload }= require("./src/addons/upload")
+
 
 const config= require("./config/config.json");
+const { karterReqCheck } = require('./src/addons/util');
 
 
 const app= express();
@@ -289,3 +293,61 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
 app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
 
 require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
+
+/**
+ * @swagger
+ * /addons/{:karter}/add:
+ *     post:
+ *       description: add a new addons to the karter's server
+ *       parameters:
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                  submitter_id:
+ *                      type: string
+ *                      format: id
+ *                  url:
+ *                      type: string
+ *                      format: url
+ *               required:
+ *                  - submitter_id
+ *                  - url
+ *       responses:
+ *         200:
+ *           description: ok
+ *         409:
+ *           description: addon already installed
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         440:
+ *           description: bad addon url?
+ *         441:
+ *           description: bad data - submitter invalid?
+ *         500:
+ *           description: error occured server side
+ */
+app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
+            addon_upload.single('file'),
+            (req, res) => {
+                if (!req.file) return res.status(400).send({status: 'no_upload', error: 'No file uploaded.'});
+            },
+            API_addons_add
+);
+
+/**
+ * @swagger
+ * /addons/{:karter}/fetch:
+*/
+app.post("/addons/:karter/fetch", karterReqCheck, );

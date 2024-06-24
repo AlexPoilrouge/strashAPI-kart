@@ -1,0 +1,8 @@
+{
+    "srb2kart" : {
+        "directory": "/home/strashbot/.srb2kart/addons"
+    },
+    "ringracers" : {
+        "directory": "/home/strashbot/.ringracers/addons"
+    }
+}
