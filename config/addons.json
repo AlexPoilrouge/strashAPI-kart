@@ -1,8 +1,25 @@
 {
-    "srb2kart" : {
-        "directory": "/home/strashbot/.srb2kart/addons"
+    "racers": {
+        "srb2kart" : {
+            "directory": "/home/strashbot/.srb2kart/addons"
+        },
+        "ringracers" : {
+            "directory": "/home/strashbot/.ringracers/addons"
+        }
     },
-    "ringracers" : {
-        "directory": "/home/strashbot/.ringracers/addons"
-    }
+    "file_size_MB": 256,
+    "allowed_filenameExt": [
+        "cfg",
+        "kart",
+        "lua",
+        "pk3",
+        "wad",
+        "txt"
+    ],
+    "allowed_mimetypes": [
+        "application/javascript",
+        "application/octet-stream",
+        "application/zip",
+        "text/plain"
+    ]
 }

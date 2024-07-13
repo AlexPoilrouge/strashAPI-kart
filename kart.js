@@ -6,7 +6,7 @@ const swaggerUI = require('swagger-ui-express');
 const { process_kart_info_args, about_kart_service }= require("./src/serv_works");
 
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
-const { API_addons_add }= require("./src/addons/add")
+const { API_addons_add, API_addons_download }= require("./src/addons/add")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
@@ -350,4 +350,6 @@ app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{:karter}/fetch:
 */
-app.post("/addons/:karter/fetch", karterReqCheck, );
+app.post("/addons/:karter/fetch", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_download
+);

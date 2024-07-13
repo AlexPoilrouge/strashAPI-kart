@@ -2,7 +2,7 @@
     "thumbnail": {
         "thumb_dirpath": "clip_thumbnails",
         "http_thumb_root_dirname": "clip_thumbnails",
-        "command_template": "ffmpeg -i __url__ -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__",
+        "command_template": "ffmpeg -i '__url__' -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__",
         "survey_cron_string": "* 6 * * *"
     }
 }

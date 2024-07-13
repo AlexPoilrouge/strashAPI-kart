@@ -4,6 +4,9 @@ const fs= require('fs')
 
 const addons_config= require("../../config/addons.json")
 
+const MB_size= 1024 * 1024;
+
+
 function getKarters(){
     return Object.keys(addons_config);
 }
@@ -11,18 +14,18 @@ function getKarters(){
 function karterReqCheck(req, res, next){
     let karter= (req.params.karter ?? "").toLowerCase()
     if (!getKarters().includes(karter)){
-        res.status(403).send({ status: "forbidden", error: `invalibe karter '${karter}'`})
+        res.status(403).send({ status: "forbidden", error: `invalid karter '${karter}'`})
     }
     
     return next()
 }
 
 function getInstalledDir(karter){
-    return `${addons_config[karter].directory}/installed`
+    return `${addons_config.racers[karter].directory}/installed`
 }
 
 function getEnabledDir(karter){
-    return `${addons_config[karter].directory}/enabled`
+    return `${addons_config.racers[karter].directory}/enabled`
 }
 
 function listAddonDir(karter, dirname){
@@ -44,4 +47,4 @@ function isEnabled(karter, addonName){
     return listEnabledDir(karter).includes(addonName)
 }
 
-module.exports= { getKarters, karterReqCheck, getInstalledDir, getEnabledDir }
+module.exports= { MB_size, getKarters, karterReqCheck, getInstalledDir, getEnabledDir }

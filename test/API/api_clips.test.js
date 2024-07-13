@@ -21,7 +21,6 @@ describe("clips fetching", () => {
                 .get("/clips")
                 .expect(200)
                 .then(res=>{
-                        console.log("1")
                         expect(res.body.page).toEqual(1)
                         expect(res.body.perPage).toEqual(32)
                         expect(res.body.totalPages).toEqual(1)
@@ -31,9 +30,7 @@ describe("clips fetching", () => {
                         expect(res.body.clips[0].type).toEqual('video')
                         expect(res.body.clips[1]._id).toEqual(173)
                         expect(res.body.clips[1].type).toBe('youtube')
-                        console.log("8")
                 })
-                console.log("end")
         })
 
         test("GET /clips?perPage=1&pageNum=2", async () => {
@@ -194,8 +191,8 @@ describe("clip insert", () => {
         const clip3_bad= {submitter_id:"185096597799960577", description: "no url test"}
         const clip4_bad= {url: 'https://www.youtube.com/watch?v=p1Hrw-TFD5s', submitter_id:"McBling_skillster", description: "bad submitter test"}
         const clip5_bad= {url: 'https://www.youtube.com/watch?v=p1Hrw-TFD5s', description: "no submitter test"}
-        const clip6= {url: 'https://cdn.discordapp.com/attachments/713699603777716267/940019188293066793/kart0091.gif', description: "user insert test with random id", submitter_id:"684068116019413036"}
-        const clip7= {url: 'https://cdn.discordapp.com/attachments/713699603777716267/940314913652473906/geometre_lvl_3000.webm', description: "user insert video", submitter_id:"684068116019413036"}
+        const clip6= {url: 'https://i.giphy.com/14kdiJUblbWBXy.gif', description: "user insert test with random id", submitter_id:"684068116019413036"}
+        const clip7= {url: 'https://i.giphy.com/5OaTgYKkdZs3vmMmSB.gif', description: "user insert video", submitter_id:"684068116019413036"}
 
         test("POST /clip/new (no auth)", async () => {
                 await request(`${f_addr}`)

@@ -5,6 +5,8 @@ const { Check_Connect }= require("../db/mongo_db_handler")
 
 const mongo_config= require("../../config/mongodb/mongodb.json");
 
+const url_ = require('url');
+
 
 let strash_db_handler= new StrashKartDB_handler(mongo_config);
 
@@ -79,23 +81,27 @@ function getClipPage(perPage=32, pageNum=1){
 }
 
 function getClipTypeFromURL(url){
-    fn= (regex ,str_if_match, next= null) => {
-        return (str => {
-            return (Boolean(str) && Boolean(str.match(regex))?
-                            str_if_match
-                        :   (Boolean(next)?next(str):null)
-                    )
-            }
-        ) 
-    };
+    const parsedUrl = new URL(url);
+    parsedUrl.query=''
+    parsedUrl.search=''
 
-    return  fn(/^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.gif$/, 'gif',
-                fn(/^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.((webm)|(mp4)|(ogg))$/, 'video',
-                    fn(/^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/|shorts\/))|(youtu\.be\/))(.{11})$/, 'youtube',
-                        fn(/^https?\:\/\/(w{3}\.)?streamable\.com\/(.*)?$/, 'streamable.com')
-                    )
-                )
-            )(url);
+    let querylessUrl= parsedUrl.toString();
+
+    let match_fn= (str,rgx) => Boolean(str) && Boolean(str.match(rgx))
+
+    if(match_fn(querylessUrl, /^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.gif$/)){
+        return 'gif';
+    }
+    else if(match_fn(querylessUrl, /^https?\:\/\/(w{3}\.)?.+\..{1,8}\/.*\.((webm)|(mp4)|(ogg))$/)){
+        return 'video';
+    }
+    else if(match_fn(url, /^https?\:\/\/(w{3}\.)?((youtube\.com.*(\?v=|\/embed\/|shorts\/))|(youtu\.be\/))(.{11})$/)){
+        return 'youtube';
+    }
+    else if(match_fn(url, /^https?\:\/\/(w{3}\.)?streamable\.com\/(.*)?$/)){
+        return 'streamable';
+    }
+    else return null;
 }
 
 function findClipFromUrl(url){

@@ -9,8 +9,8 @@ let res = [
   db.clips.createIndex({ submitter_id: 1 }),
   db.clips.insert({
         _id: 181, type:'video',
-        url: "https://cdn.discordapp.com/attachments/713699603777716267/987848222829600788/SPBstop.webm",
-        timestamp: new Date('2022-06-18 22:36:10'),
+        url: "https://dl6.webmfiles.org/big-buck-bunny_trailer.webm",
+        timestamp: new Date('2024-06-18 22:36:10'),
         description: "PROUT",
         submitter_id: "185096597799960577",
         thumbnail: ""
@@ -18,7 +18,7 @@ let res = [
   db.clips.insert({
         _id: 173, type:'youtube',
         url: "https://www.youtube.com/watch?v=sxn1HtIpPVk",
-        timestamp: new Date('2022-06-18 22:36:10'),
+        timestamp: new Date('2024-06-18 22:36:10'),
         description: "funny clips",
         submitter_id: "185096597799960577",
         thumbnail: ""
