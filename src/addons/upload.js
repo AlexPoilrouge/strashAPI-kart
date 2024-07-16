@@ -9,11 +9,16 @@ const addons_util= require('./util')
 //Usefull ref: https://devsarticles.com/multer-file-upload-nodejs-complete-guide
 
 
+let hereLog= (...args) => {console.log("[addons_upldoad]", ...args);};
+
+
 function fileFilter(req, file, cb){
     if(!addons_config.allowed_filenameExt.includes(path.extname(file.originalname))){
+        hereLog(`fileFilter - file '${file.originalname}' has bad extension…`)
         cb(new Error('File must have allowed filename extension'), false)
     }
     else if(!addons_config.allowed_mimetypes.includes(file.mimetype)){
+        hereLog(`fileFilter - file '${file.originalname}' has bad mimetype (${file.mimetype})…`)
         cb(new Error('File with unallowed mime type'), false)
     }
     else{
@@ -23,7 +28,7 @@ function fileFilter(req, file, cb){
 
 const addons_storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, addons_util.getInstalledDir(karter));
+        cb(null, addons_util.getInstalledDir(req.params.karter, true));
     },
     filename: (req, file, cb) => {
         cb(null, file.originalname);

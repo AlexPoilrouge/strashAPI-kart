@@ -9,12 +9,12 @@
     },
     "file_size_MB": 256,
     "allowed_filenameExt": [
-        "cfg",
-        "kart",
-        "lua",
-        "pk3",
-        "wad",
-        "txt"
+        ".cfg",
+        ".kart",
+        ".lua",
+        ".pk3",
+        ".wad",
+        ".txt"
     ],
     "allowed_mimetypes": [
         "application/javascript",

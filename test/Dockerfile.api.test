@@ -8,7 +8,8 @@ RUN pacman-db-upgrade
 RUN pacman -Syyu --noconfirm npm nodejs
 
 
-
+COPY ./test/package.json /test/package.json
+RUN npm install --prefix /test
 
 
 COPY ./install /test/install
@@ -16,7 +17,6 @@ COPY ./compose /test/compose
 COPY ./test /test
 WORKDIR /test
 
-RUN npm install
 
 ARG values_script
 RUN /bin/bash install/install.sh "${values_script}"

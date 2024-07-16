@@ -7,6 +7,7 @@ const { process_kart_info_args, about_kart_service }= require("./src/serv_works"
 
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
 const { API_addons_add, API_addons_download }= require("./src/addons/add")
+const { API_getAddonsInfos }= require("./src/addons/infos")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
@@ -294,6 +295,7 @@ app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
 
 require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
 
+const multer = require('multer');
 /**
  * @swagger
  * /addons/{:karter}/add:
@@ -339,10 +341,19 @@ require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
  *           description: error occured server side
  */
 app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
-            addon_upload.single('file'),
-            (req, res) => {
-                if (!req.file) return res.status(400).send({status: 'no_upload', error: 'No file uploaded.'});
-            },
+            (req, res, next) => {
+                addon_upload.single('file')(req, res, err => {
+                    if (err instanceof multer.MulterError) {
+                        // A Multer error occurred when uploading the file
+                        return res.status(400).send({status: 'file_error', error: err.message});
+                    } else if (err) {
+                        // An unknown error occurred when uploading the file
+                        return res.status(500).send({status: 'internal_error'});
+                    }
+
+                    next();
+                })
+            }, 
             API_addons_add
 );
 
@@ -350,6 +361,8 @@ app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{:karter}/fetch:
 */
-app.post("/addons/:karter/fetch", karterReqCheck, API_verifyTokenFromPOSTBody,
+app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
             API_addons_download
 );
+
+app.get("/addons/:karter/info", karterReqCheck, API_getAddonsInfos)

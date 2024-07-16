@@ -8,11 +8,11 @@ RUN pacman -Syyu --noconfirm npm nodejs \
                             ffmpeg
 
 
+COPY package.json /var/api/strash-api/package.json
+RUN npm install --prefix /var/api/strash-api/
+
 COPY . /var/api/strash-api
 WORKDIR /var/api/strash-api
-
-
-RUN npm install
 
 
 ARG values_script

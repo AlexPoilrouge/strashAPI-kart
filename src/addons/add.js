@@ -9,17 +9,14 @@ const path = require('path');
 
 let hereLog= (...args) => {console.log("[kart - add_addon]", ...args);};
 
-function API_addons_add(err, req, res, next){
-    res.status(403).send({status: "not_implemented"})
-
-    if (err instanceof multer.MulterError) {
-        // A Multer error occurred when uploading the file
-        return res.status(400).send({status: 'file_error', error: err.message});
-    } else if (err) {
-        // An unknown error occurred when uploading the file
-        hereLog(err.message)
-        return res.status(500).send({status: 'internal_error'});
-    }
+function API_addons_add(req, res, next){
+    res.status(200).send({
+        status: 'added',
+        result: {
+            addon: req.file.filename,
+            state: path.basename(req.file.destination)
+        }
+    })
 }
 
 async function fileInfo_preDownload(url){
@@ -31,34 +28,80 @@ async function fileInfo_preDownload(url){
 }
 
 function getFilenameFromUrl(fileUrl) {
-    // Parse the URL
-    const parsedUrl = url.parse(fileUrl);
+    let parsedUrl = new URL(fileUrl);
+    parsedUrl.query=''
+    parsedUrl.search=''
+
     // Extract the pathname
     const pathname = parsedUrl.pathname;
     // Get the basename (the filename with extension)
     const filename = path.basename(pathname);
   
     return filename;
-  }
+}
 
-function API_addons_download(err, req, res, next){
+async function addon_download(karter, url){
+    const installDirectory= addons_util.getInstalledDir(karter, true)
+    const filename= getFilenameFromUrl(url)
+
+    const addonPath= path.resolve(installDirectory, filename)
+
+    // axios image download with response type "stream"
+    const response = await Axios({
+        method: 'GET',
+        url: url,
+        responseType: 'stream'
+    })
+
+    // pipe the result stream into a file on disc
+    response.data.pipe(Fs.createWriteStream(addonPath))
+
+    // return a promise and resolve when download finishes
+    return new Promise((resolve, reject) => {
+        response.data.on('end', () => {
+            resolve(addonPath)
+        })
+
+        response.data.on('error', () => {
+            reject()
+        })
+    })
+}
+
+function API_addons_download(req, res, next){
     res.status(403).send({status: "not_implemented"})
 
-    var { url }= req.body
+    var { url }= req.query
+    const racer= req.params.karter
     const fileSizeLimit= addons_config.file_size_MB * addons_util.MB_size
 
     fileInfo_preDownload(url).then( fileInfo => {
         if( fileInfo.fileSize < fileSizeLimit ){
             res.status(440).send({status: "file_too_heavy"})
         }
-        else if(!addons_config.allowed_mimetypes.includes(getFilenameFromUrl(fileInfo.mimeType))){
+        else if(!addons_config.allowed_mimetypes.includes(ileInfo.mimeType)){
             res.status(441).send({status: "file_bad_mimetype"})
         }
         else if(!addons_config.allowed_filenameExt.includes(getFilenameFromUrl(url))){
             res.status(442).send({status: "file_bad_extension"})
         }
 
-        res.status(200)
+        addon_download(racer, url).then( addonPath => {
+            const addonName= path.basename(addonPath)
+
+            res.status(200).send({
+                status: 'added',
+                result: {
+                    addon: addonName,
+                    state: addons_util.isAddonEnabled(addonName)? 'enabled': 'installed'
+                }
+            })
+        })
+        .catch(() => {
+            hereLog(`[API_addons_download] failed fetching addon from '${url}'`)
+            res.status(513).send({status: 'addon_download_failed'})
+        })
+        
     } )
     .catch(err => {
         hereLog(`[API_addons_download] ${err}`)
