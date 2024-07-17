@@ -8,6 +8,7 @@ const { process_kart_info_args, about_kart_service }= require("./src/serv_works"
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
 const { API_addons_add, API_addons_download }= require("./src/addons/add")
 const { API_getAddonsInfos }= require("./src/addons/infos")
+const { API_addons_enable, API_addons_disable, API_addons_remove }= require("./src/addons/manage")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
@@ -35,7 +36,7 @@ const swaggerOptions= {
         openapi: '3.0.0',
         info: {
             title: 'kart_api',
-            version: '0.1.1'
+            version: '0.1.2'
         },
         host: config.api.HOST,
         basePath: config.api.BASE_PATH,
@@ -298,10 +299,14 @@ require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
 const multer = require('multer');
 /**
  * @swagger
- * /addons/{:karter}/add:
+ * /addons/{karter}/upload:
  *     post:
- *       description: add a new addons to the karter's server
+ *       description: uploads a new addon to the karter's server
  *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
  *         - name: x-access-token
  *           in: header
  *           required: true
@@ -309,34 +314,24 @@ const multer = require('multer');
  *       requestBody:
  *         required: true
  *         content:
- *           application/json:
+ *           multipart/form-data:
  *             schema:
  *               type: object
  *               properties:
- *                  submitter_id:
- *                      type: string
- *                      format: id
- *                  url:
- *                      type: string
- *                      format: url
- *               required:
- *                  - submitter_id
- *                  - url
+ *                 file:
+ *                   type: string
+ *                   format: binary
  *       responses:
  *         200:
  *           description: ok
- *         409:
- *           description: addon already installed
  *         400:
  *           description: bad request
  *         401:
  *           description: bad token
  *         403:
  *           description: forbidden access
- *         440:
- *           description: bad addon url?
- *         441:
- *           description: bad data - submitter invalid?
+ *         404:
+ *           description: resource not found (bad 'karter' param?)
  *         500:
  *           description: error occured server side
  */
@@ -359,10 +354,231 @@ app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
 
 /**
  * @swagger
- * /addons/{:karter}/fetch:
+ * /addons/{karter}/install:
+ *     post:
+ *       description: push and addon url for server to download
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *       requestBody:
+ *           required: true
+ *           content:
+ *             application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 url:
+ *                   type: string
+ *                   format: url
+ *       responses:
+ *         200:
+ *           description: ok
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param?)
+ *         440:
+ *           description: file to heavy (limit should be 256 MB)
+ *         441:
+ *           description: unallowed file mimetype
+ *         442:
+ *           description: unallowed file extension
+ *         500:
+ *           description: error occured server side
+ *         513:
+ *           description: failed to download file at given url
 */
 app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
             API_addons_download
 );
 
+/**
+ * @swagger
+ * /addons/{karter}/info:
+ *     get:
+ *       description: push and addon url for server to download
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               addons:
+ *                 type: string
+ *       responses:
+ *         200:
+ *           description: ok
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param? no addons installed? given addon not installed?)
+ *         500:
+ *           description: error occured server side
+*/
 app.get("/addons/:karter/info", karterReqCheck, API_getAddonsInfos)
+
+/**
+ * @swagger
+ * /addons/{karter}/enable:
+ *     post:
+ *       description: enable already installed addons on the server
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               addons:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *       responses:
+ *         200:
+ *           description: ok
+ *         201:
+ *           description: failure occured enabling some addons
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param? no addons installed? given addon not installed?)
+ *         500:
+ *           description: error occured server side
+ *         513:
+ *           description: no addon enabled
+*/
+app.post("/addons/:karter/enable", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_enable
+)
+
+/**
+ * @swagger
+ * /addons/{karter}/disable:
+ *     post:
+ *       description: disable installed addons on the server
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               addons:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *       responses:
+ *         200:
+ *           description: ok
+ *         201:
+ *           description: failure occured disabling some addons
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param?)
+ *         500:
+ *           description: error occured server side
+ *         513:
+ *           description: no addon disabled
+*/
+app.post("/addons/:karter/disable", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_disable
+)
+
+/**
+ * @swagger
+ * /addons/{karter}/remove:
+ *     post:
+ *       description: remove/uninstall installed addons on the server
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               addons:
+ *                 oneOf:
+ *                   - type: string
+ *                   - type: array
+ *                     items:
+ *                       type: string
+ *       responses:
+ *         200:
+ *           description: ok
+ *         201:
+ *           description: failure occured removing some addons
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param?)
+ *         500:
+ *           description: error occured server side
+ *         513:
+ *           description: no addon removed
+*/
+app.post("/addons/:karter/remove", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_remove
+)

@@ -5,6 +5,7 @@ const addons_config= require("../../config/addons.json")
 const addons_util= require("./util");
 const url = require('url');
 const path = require('path');
+const fs = require('fs');
 
 
 let hereLog= (...args) => {console.log("[kart - add_addon]", ...args);};
@@ -24,7 +25,7 @@ async function fileInfo_preDownload(url){
     const fileSize = parseInt(headResponse.headers['content-length'], 10);
     const mimeType = headResponse.headers['content-type'];
 
-    return [ fileSize, mimeType ];
+    return { fileSize, mimeType };
 }
 
 function getFilenameFromUrl(fileUrl) {
@@ -47,14 +48,14 @@ async function addon_download(karter, url){
     const addonPath= path.resolve(installDirectory, filename)
 
     // axios image download with response type "stream"
-    const response = await Axios({
+    const response = await axios({
         method: 'GET',
         url: url,
         responseType: 'stream'
     })
 
     // pipe the result stream into a file on disc
-    response.data.pipe(Fs.createWriteStream(addonPath))
+    response.data.pipe(fs.createWriteStream(addonPath))
 
     // return a promise and resolve when download finishes
     return new Promise((resolve, reject) => {
@@ -62,49 +63,50 @@ async function addon_download(karter, url){
             resolve(addonPath)
         })
 
-        response.data.on('error', () => {
-            reject()
+        response.data.on('error', err => {
+            reject(err)
         })
     })
 }
 
 function API_addons_download(req, res, next){
-    res.status(403).send({status: "not_implemented"})
-
     var { url }= req.query
     const racer= req.params.karter
     const fileSizeLimit= addons_config.file_size_MB * addons_util.MB_size
 
     fileInfo_preDownload(url).then( fileInfo => {
-        if( fileInfo.fileSize < fileSizeLimit ){
+        if( fileInfo.fileSize > fileSizeLimit ){
+            hereLog(`API_addons_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
         }
-        else if(!addons_config.allowed_mimetypes.includes(ileInfo.mimeType)){
+        else if(!addons_config.allowed_mimetypes.includes(fileInfo.mimeType)){
+            hereLog(`API_addons_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimeType}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
-        else if(!addons_config.allowed_filenameExt.includes(getFilenameFromUrl(url))){
+        else if(!addons_config.allowed_filenameExt.includes(path.extname(getFilenameFromUrl(url)))){
+            hereLog(`API_addons_download - file at '${url}' seems to have bad extension.`)
             res.status(442).send({status: "file_bad_extension"})
         }
+        else{
+            addon_download(racer, url).then( addonPath => {
+                const addonName= path.basename(addonPath)
 
-        addon_download(racer, url).then( addonPath => {
-            const addonName= path.basename(addonPath)
-
-            res.status(200).send({
-                status: 'added',
-                result: {
-                    addon: addonName,
-                    state: addons_util.isAddonEnabled(addonName)? 'enabled': 'installed'
-                }
+                res.status(200).send({
+                    status: 'added',
+                    result: {
+                        addon: addonName,
+                        state: addons_util.isAddonEnabled(racer, addonName)? 'enabled': 'installed'
+                    }
+                })
             })
-        })
-        .catch(() => {
-            hereLog(`[API_addons_download] failed fetching addon from '${url}'`)
-            res.status(513).send({status: 'addon_download_failed'})
-        })
-        
+            .catch(err => {
+                hereLog(`[API_addons_download] failed fetching addon from '${url}' - ${err}`)
+                res.status(513).send({status: 'addon_download_failed'})
+            })
+        }
     } )
     .catch(err => {
-        hereLog(`[API_addons_download] ${err}`)
+        hereLog(`[API_addons_download] error ${err}`)
         res.status(500).send({status: "internal_error"})
     })
 }

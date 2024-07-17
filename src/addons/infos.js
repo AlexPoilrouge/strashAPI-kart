@@ -42,7 +42,6 @@ const getAllAddonsInfo= (karter) =>
     )
 
 function API_getAddonsInfos(req, res, next){
-    hereLog(`API_getAddonsInfo - req body: ${JSON.stringify(req.query)}`)
     let karter= req.params.karter
     let lookfor_addon= req.query.addon;
 
