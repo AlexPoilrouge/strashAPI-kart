@@ -140,7 +140,7 @@ describe("addon upload", () => {
     test("POST /addons/ringracers/install (no auth)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/install")
-            .query({url: test_addon2_url})
+            .send({url: test_addon2_url})
             .expect(403)
     })
 
@@ -148,7 +148,7 @@ describe("addon upload", () => {
         await request(f_addr)
             .post("/addons/ringracers/install")
             .set("x-access-token", admin_token)
-            .query({url: test_addon2_url})
+            .send({url: test_addon2_url})
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('added')
                 expect(res.body.result.addon).toEqual(test_addon2_basename)
@@ -184,7 +184,7 @@ describe("addon upload", () => {
         await request(f_addr)
             .post("/addons/srb2kart/install")
             .set("x-access-token", admin_token)
-            .query({url: test_addon2_url})
+            .send({url: test_addon2_url})
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('added')
                 expect(res.body.result.addon).toEqual(test_addon2_basename)
@@ -213,7 +213,7 @@ describe("addon upload", () => {
         await request(f_addr)
             .post("/addons/crashteamracing/upload")
             .set("x-access-token", admin_token)
-            .query({addon: test_addon2_basename})
+            .send({addon: test_addon2_basename})
             .expect(404)
     })
 })
@@ -222,7 +222,7 @@ describe("addon enable", () => {
     test("POST /addons/ringracers/enable (no auth)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/enable")
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(403)
     })
 
@@ -230,7 +230,7 @@ describe("addon enable", () => {
         await request(f_addr)
             .post("/addons/ringracers/enable")
             .set("x-access-token", admin_token)
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('success')
                 let res_enabled= res.body.enabled
@@ -251,7 +251,7 @@ describe("addon enable", () => {
         await request(f_addr)
             .post("/addons/srb2kart/enable")
             .set("x-access-token", admin_token)
-            .query({addons: [ test_addon2_basename, path.basename(test_addon1_filepath), "not_existing.pk3" ]})
+            .send({addons: [ test_addon2_basename, path.basename(test_addon1_filepath), "not_existing.pk3" ]})
             .expect(201).then(res => {
                 let res_enabled= res.body.enabled
                 let res_failed= res.body.failed
@@ -277,7 +277,7 @@ describe("addon enable", () => {
     test("POST /addons/ringracers/disable (no auth)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/disable")
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(403)
     })
 
@@ -285,7 +285,7 @@ describe("addon enable", () => {
         await request(f_addr)
             .post("/addons/ringracers/disable")
             .set("x-access-token", admin_token)
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('success')
                 let res_disabled= res.body.disabled
@@ -306,7 +306,7 @@ describe("addon enable", () => {
         await request(f_addr)
             .post("/addons/srb2kart/disable")
             .set("x-access-token", admin_token)
-            .query({addons: [ path.basename(test_addon1_filepath), "not_existing.pk3" ]})
+            .send({addons: [ path.basename(test_addon1_filepath), "not_existing.pk3" ]})
             .expect(200).then(res => {
                 let res_disabled= res.body.disabled
                 expect(res_disabled.length).toEqual(2)
@@ -332,14 +332,14 @@ describe("addon remove", () => {
     test("POST /addons/ringracers/remove (no auth)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/remove")
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(403)
     })
     test("POST /addons/ringracers/remove (auth admin)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/remove")
             .set("x-access-token", admin_token)
-            .query({addons: path.basename(test_addon1_filepath)})
+            .send({addons: path.basename(test_addon1_filepath)})
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('success')
                 let res_removed= res.body.removed
@@ -358,14 +358,14 @@ describe("addon remove", () => {
             .expect(200).then(res => {
                 expect(res.body.info.enabled).toBeFalsy()
                 expect(res.body.info.racer).toEqual("ringracers")
-            })     
+            })
     })
 
     test("POST /addons/srb2kart/remove (auth admin)", async() => {
         await request(f_addr)
             .post("/addons/srb2kart/remove")
             .set("x-access-token", admin_token)
-            .query({addons: [ test_addon2_basename, "not_existing.pk3" ]})
+            .send({addons: [ test_addon2_basename, "not_existing.pk3" ]})
             .expect(200).then(res => {
                 let res_removed= res.body.removed
                 expect(res_removed.length).toEqual(2)

@@ -412,14 +412,10 @@ app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
  *           in: path
  *           required: true
  *           type: string
- *       required: false
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addons:
- *                 type: string
+ *         - name: addon
+ *           in: query
+ *           required: false
+ *           type: string
  *       responses:
  *         200:
  *           description: ok
@@ -450,19 +446,19 @@ app.get("/addons/:karter/info", karterReqCheck, API_getAddonsInfos)
  *           in: header
  *           required: true
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addons:
- *                 oneOf:
- *                   - type: string
- *                   - type: array
- *                     items:
- *                       type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 addons:
+ *                   oneOf:
+ *                     - type: string
+ *                     - type: array
+ *                       items:
+ *                         type: string
  *       responses:
  *         200:
  *           description: ok
@@ -499,19 +495,19 @@ app.post("/addons/:karter/enable", karterReqCheck, API_verifyTokenFromPOSTBody,
  *           in: header
  *           required: true
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addons:
- *                 oneOf:
- *                   - type: string
- *                   - type: array
- *                     items:
- *                       type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 addons:
+ *                   oneOf:
+ *                     - type: string
+ *                     - type: array
+ *                       items:
+ *                         type: string
  *       responses:
  *         200:
  *           description: ok
@@ -548,19 +544,19 @@ app.post("/addons/:karter/disable", karterReqCheck, API_verifyTokenFromPOSTBody,
  *           in: header
  *           required: true
  *           type: string
- *     requestBody:
- *       required: true
- *       content:
- *         application/json:
- *           schema:
- *             type: object
- *             properties:
- *               addons:
- *                 oneOf:
- *                   - type: string
- *                   - type: array
- *                     items:
- *                       type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 addons:
+ *                   oneOf:
+ *                     - type: string
+ *                     - type: array
+ *                       items:
+ *                         type: string
  *       responses:
  *         200:
  *           description: ok

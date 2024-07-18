@@ -73,8 +73,11 @@ function remove_addon(karter, addon){
 
 function API_addons_enable(req, res, next){
     let karter= req.params.karter
-    let addons= req.query.addons
-    if (!addons) return res.status(400).send({status: 'bad_request'})
+    let addons= req.body.addons
+    if (!addons){
+        hereLog(`helllooooo? ${JSON.stringify(req.body)}`)
+        return res.status(400).send({status: 'bad_request'})
+    }
     if(!Array.isArray(addons)) addons= [addons]
 
     var enabled= [], failed= []
@@ -96,7 +99,7 @@ function API_addons_enable(req, res, next){
 
 function API_addons_disable(req, res, next){
     let karter= req.params.karter
-    let addons= req.query.addons
+    let addons= req.body.addons
     if (!addons) return res.status(400).send({status: 'bad_request'})
     if(!Array.isArray(addons)) addons= [addons]
 
@@ -119,7 +122,7 @@ function API_addons_disable(req, res, next){
 
 function API_addons_remove(req, res, next){
     let karter= req.params.karter
-    let addons= req.query.addons
+    let addons= req.body.addons
     if (!addons) return res.status(400).send({status: 'bad_request'})
     if(!Array.isArray(addons)) addons= [addons]
 

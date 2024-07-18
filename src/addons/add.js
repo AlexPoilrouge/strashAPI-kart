@@ -70,7 +70,7 @@ async function addon_download(karter, url){
 }
 
 function API_addons_download(req, res, next){
-    var { url }= req.query
+    var { url }= req.body
     const racer= req.params.karter
     const fileSizeLimit= addons_config.file_size_MB * addons_util.MB_size
 
