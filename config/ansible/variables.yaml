@@ -1,0 +1,62 @@
+root_dir: /
+
+docker_test: "{{ docker_test_flag | default(false) }}"
+
+git:
+  url: https://github.com/AlexPoilrouge/strashAPI-kart.git
+  branch: "{{ git_branch_var | default('master') }}"
+  cloned_repo_dir: /var/sources/my_kart_sapi
+  remove_on_finish: true
+
+strashbot:
+  username: strashbot
+  home: "/home/strashbot"
+
+api:
+  config:
+    host: "localhost:6029"
+    port: 6029
+    base_path: "/"
+    has_https: false
+  service:
+    workdir: "../.."
+  keys:
+    admin_filepath: "config/admin_jwtRS256.key.pub"
+    discord_user_filepath: "config/jwtRS256.key.pub"
+  features:
+    clips:
+      thumbnail_gen_cmd: "ffmpeg -i '__url__' -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__"
+      thumbnail_survey_cron_string: "* 6 * * *"
+
+mongo_db:
+  username: strashbot
+  password: "Zpas5wordX_"
+  address: localhost
+  main_db_name: strashbotkarting_db
+  strashbot_db_main: strashbotkarting_db
+
+racers:
+  - name: ringracers
+    port: 5029
+    thumbnail_url: http://strashbot.fr/img/server/active_thumb.png
+    aliases:
+      - "strashbot"
+      - "strash"
+      - "here"
+      - "us"
+      - "home"
+    addresses:
+      - "strashbot.fr"
+      - "193.70.41.86"
+      - "localhost"
+      - "127.0.0.1"
+    core_commands:
+      - name: service
+        type: local
+        cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
+        timeout: 5000
+    additionnal_commands:
+      - name: "modes"
+        type: local
+        cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
+        timeout: 8000

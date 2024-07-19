@@ -1,0 +1,14 @@
+ {
+    "username": "{{ mongo_db.username }}",
+    "password": "{{ mongo_db.password }}",
+    "host": "{{ mongo_db.address }}",
+    "main_db": "{{ mongo_db.main_db_name }}",
+    "databases": [
+      {
+         "name": "{{ mongo_db.strashbot_db_main }}",
+         "collections": {
+            "clips": "clips"
+         }
+      }
+    ]
+ }

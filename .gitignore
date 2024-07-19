@@ -1,1 +1,6 @@
-./test/tools/test_token.json
+test/tools/test_token.json
+compose/db-data/
+node_modules/
+package-lock.json
+test/node_modules/
+test/package-lock.json

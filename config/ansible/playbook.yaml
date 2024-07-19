@@ -1,0 +1,13 @@
+- name: kart_api_install
+  vars_files:
+    - "{{ variables_file_var | default('./variables.yaml') }}"
+  become: true
+  hosts: "{{ host_var | default('all') }}"
+
+  tasks:
+    - include_tasks: ./tasks/source_fetch.yaml
+
+    - name: creating strashbot user
+      ansible.builtin.user:
+        name: "{{ strashbot.username }}"
+        home: "{{ strashbot.home }}"

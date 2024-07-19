@@ -1,0 +1,13 @@
+{
+    {% for racer in racers %}
+    "{{ racer.name }}": {
+        {% for core_cmd in racer.core_commands %}
+        "{{ core_cmd.name }}": {
+            "cmd": "{{ racer.core_commands.cmd }}",
+            "type": "{{ racer.core_commands.type }}",
+            "timeout": {{ racer.core_commands.timeout }}
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    }{% if not loop.last %},{% endif %}
+    {% endfor %}
+}
