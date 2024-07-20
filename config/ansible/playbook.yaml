@@ -11,3 +11,60 @@
       ansible.builtin.user:
         name: "{{ strashbot.username }}"
         home: "{{ strashbot.home }}"
+
+    - name: "Sources install [ {{ item }} ]"
+      ansible.builtin.copy:
+        remote_src: true        
+        src: "{{ root_dir }}/{{ git.cloned_repo_dir }}/{{ item }}"
+        dest: "{{ root_dir }}/{{ install_dir }}/{{ item }}"
+        mode: 0644
+        owner: "{{ strashbot.username }}"
+        group: "{{ strashbot.username }}"
+      loop:
+        - "src/"
+        - "install/"
+        - "kart.js"
+        - "package.json"
+      loop_control:
+        loop_var: item
+
+    - include_tasks: ./tasks/install_templates.yaml
+      loop:
+        - { filename: "strashbot_info.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/info" }
+        - { filename: "others_info.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/info" }
+        - { filename: "nginx-strash-api.conf", dest_dir: "{{ root_dir }}/etc/nginx/sites-enabled" }
+        - { filename: "strash-api.service", dest_dir: "{{ root_dir }}/etc/systemd/system" }
+        - { filename: "core_commands.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
+        - { filename: "config.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
+        - { filename: "mongodb.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/mongodb" }
+        - { filename: "key.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/auth" }
+        - { filename: "clips.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
+      loop_control:
+        loop_var: template_info
+
+    - name: Install packages based on package.json.
+      community.general.npm:
+        path: "{{ root_dir }}/{{ install_dir }}"
+
+    - name: Systemd reload
+      when: systemd is defined and systemd.install is defined and systemd.install and ( ( docker_test is undefined ) or ( not docker_test ) )
+      ansible.builtin.systemd_service:
+        daemon_reload: true
+    - name: nginx restart
+      when: systemd is defined and systemd.install is defined and systemd.install and nginx is defined and nginx.install is defined and nginx.install and ( ( docker_test is undefined ) or ( not docker_test ) )
+      ansible.builtin.systemd_service:
+        name: nginx
+        state: restarted
+        enabled: true
+    - name: "Strash-API service restart"
+      when: systemd is defined and systemd.install is defined and systemd.install and ( ( docker_test is undefined ) or ( not docker_test ) )
+      ansible.builtin.systemd_service:
+        name: "strash-api"
+        state: "restarted"
+        enabled: true
+
+    - name: "remove source repo"
+      when: git is defined and git.remove_on_finish is defined and git.remove_on_finish 
+      ansible.builtin.file:
+        path: "{{ root_dir }}/{{ git.cloned_repo_dir }}"
+        state: absent

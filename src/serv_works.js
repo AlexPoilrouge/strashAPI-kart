@@ -7,15 +7,16 @@ const kart_util= require("./kart_util");
 
 const strashbot_info= require("../config/info/strashbot_info.json");
 const others_info= require("../config/info/others_info.json");
-const service_cmd= require("../config/service.json");
+const core_cmd= require("../config/core_commands.json")
 
-function _fetch_real_address_and_port(addr, p){
+function _fetch_real_address_and_port(addr, p, karter="ringracers"){
     var address= addr
     var port= (Boolean(p)?p:5029)
 
-    if( (!Boolean(address)) || ((!(strashbot_info.ADDRESS.includes(address))) && (strashbot_info.NAMES.includes(address))) )
+    let racer_infos= strashbot_info[karter]
+    if( (!Boolean(address)) || (Boolean(racer_infos) && (!(racer_infos.ADDRESS.includes(address))) && (racer_infos.NAMES.includes(address))) )
     {
-        address= strashbot_info.ADDRESS[0]
+        address= racer_infos.ADDRESS[0]
     }
     else if ( Boolean(others_info.list) && ((others_info.list.length>0)))
     {
@@ -85,7 +86,7 @@ function _parse_command_obj(cmd_obj, timeout=32000){
     }
 }
 
-function process_args(addr, p=5029){
+function process_args(addr, p=5029, karter="ringracers"){
     let { address, port } = _fetch_real_address_and_port(addr, p);
 
     console.log( `address: ${address}; port: ${port}`)
@@ -93,8 +94,9 @@ function process_args(addr, p=5029){
     return ServerInfo_Promise(address, port).then( async info => {
         var serv_obj= null
 
-        if (strashbot_info.ADDRESS.includes(address)){
-            serv_obj= strashbot_info
+        let racer_infos= strashbot_info[karter]
+        if (racer_infos.ADDRESS.includes(address)){
+            serv_obj= racer_infos
         }
         else if(Boolean(others_info.list) && ((others_info.list.length>0))){
             serv_obj= others_info.list.find( obj => {
@@ -137,7 +139,13 @@ function process_args(addr, p=5029){
     })
 }
 
-function about_service(){
+function about_service(karter="ringracers"){
+    var service_cmd= undefined
+    if((!Boolean(core_cmd[karter])) || !Boolean(service_cmd=core_cmd[karter].service)){
+        console.log(`[about service - config read failure] missing or bad config in 'core_commands.json' for 'service' cmd of '${karter}'…`)
+        throw {status: "CONFIG_ERROR"} // caught into 500
+    }
+
     return _parse_command_obj(service_cmd, 5000).then(result_obj => {
         if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
             throw { status: "ERROR" }

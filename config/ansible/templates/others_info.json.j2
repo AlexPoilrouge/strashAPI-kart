@@ -1,0 +1,14 @@
+{
+    "list":[
+        {% for other in others %}
+        {
+            "NAMES": [
+                {% for name in other.aliases %}"{{ name }}"{% if not loop.last %}, {% endif %}{% endfor %}
+            ],
+            "ADDRESS": [
+                {% for address in other.addresses %}"{{ address }}"{% if not loop.last %}, {% endif %}{% endfor %}
+            ],
+            "PORT": {{ other.port }}
+        }{% if not loop.last %},{% endif %}{% endfor %}
+    ]
+}

@@ -3,25 +3,21 @@
     "{{ racer.name }}": {
         "PORT": {{ racer.port }},
         "ADDRESS": [
-            {% for item in racer.addresses %}
-                "{{ item.values() | list | first | first }}"{% if not loop.last %},{% endif %}
-            {% endfor %}
-        ]
+            {% for item in racer.addresses %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}
+        
+        ],
         "NAMES": [
-            {% for item in racer.aliases %}
-                "{{ item.values() | list | first | first }}"{% if not loop.last %},{% endif %}
-            {% endfor %}
+            {% for item in racer.aliases %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}
+        
         ],
         "additionnal_cmd": {
-            {% for command in racer.additionnal_commands %}
-            "{{ command.name }}"": {
-                "type": "{{ command.type }}"
-                "cmd": "{{ command.cmd }}"
+            {% for command in racer.additionnal_commands %}"{{ command.name }}": {
+                "type": "{{ command.type }}",
+                "cmd": "{{ command.cmd }}",
                 "timeout": {{ command.timeout }}
-            }{% if not loop.last %},{% endif %}
-            {% endfor %}
+            }{% if not loop.last %},{% endif %}{% endfor %}
+        
         },
         "thumbnail": "{{ racer.thumbnail_url }}"
-    }{% if not loop.last %},{% endif %}
-    {% endfor %}
+    }{% if not loop.last %},{% endif %}{% endfor %}
 }

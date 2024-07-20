@@ -1,11 +1,18 @@
 root_dir: /
+install_dir: /var/api/strash-api
 
 docker_test: "{{ docker_test_flag | default(false) }}"
+
+systemd:
+  install: true
+
+nginx:
+  install: true
 
 git:
   url: https://github.com/AlexPoilrouge/strashAPI-kart.git
   branch: "{{ git_branch_var | default('master') }}"
-  cloned_repo_dir: /var/sources/my_kart_sapi
+  cloned_repo_dir: /var/sources/strashAPI-kart
   remove_on_finish: true
 
 strashbot:
@@ -17,10 +24,16 @@ api:
     host: "localhost:6029"
     port: 6029
     base_path: "/"
-    has_https: false
+    has_https: "false"
+  nginx:
+    access_addr: "127.0.0.1"
+    access_port: 6029
+    access_server_names:
+      - "strashbot.fr"
+      - "www.strashbot.fr"
   service:
     workdir: "../.."
-  keys:
+  my_keys:
     admin_filepath: "config/admin_jwtRS256.key.pub"
     discord_user_filepath: "config/jwtRS256.key.pub"
   features:
@@ -60,3 +73,10 @@ racers:
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
         timeout: 8000
+
+others:
+  - aliases:
+      - "patafoin"
+    addresses:
+      - "146.59.237.103"
+    port: 5029

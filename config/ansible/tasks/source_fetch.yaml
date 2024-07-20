@@ -3,11 +3,11 @@
     - name: fetching source from git
       ansible.builtin.git:
         repo: "{{ git.url }}"
-        dest: "{{ root_dir }}{{ git.cloned_repo_dir }}"
+        dest: "{{ root_dir }}/{{ git.cloned_repo_dir }}"
         version: "{{ git.branch }}"
     - name: setting definitive source path
       ansible.builtin.set_fact:
-        server_source_dir: "{{ root_dir }}{{ git.cloned_repo_dir }}"
+        server_source_dir: "{{ root_dir }}/{{ git.cloned_repo_dir }}"
   when: ( source_fetch is undefined ) or source_fetch == "git" or source_fetch == ""
 - name: setting definitive source path
   ansible.builtin.set_fact:
