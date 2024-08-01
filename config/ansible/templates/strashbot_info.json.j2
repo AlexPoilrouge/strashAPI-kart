@@ -1,6 +1,5 @@
 {
-    {% for racer in racers %}
-    "{{ racer.name }}": {
+    {% for racer in racers %}"{{ racer.name }}": {
         "PORT": {{ racer.port }},
         "ADDRESS": [
             {% for item in racer.addresses %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}
@@ -10,14 +9,20 @@
             {% for item in racer.aliases %}"{{ item }}"{% if not loop.last %}, {% endif %}{% endfor %}
         
         ],
-        "additionnal_cmd": {
+        {% if racer.additionnal_commands is defined %}"additionnal_cmd": {
             {% for command in racer.additionnal_commands %}"{{ command.name }}": {
                 "type": "{{ command.type }}",
                 "cmd": "{{ command.cmd }}",
                 "timeout": {{ command.timeout }}
             }{% if not loop.last %},{% endif %}{% endfor %}
         
-        },
+        },{% endif %}
+
+        {% if racer.default is defined and racer.default %}"default": true,{% endif %}
+
         "thumbnail": "{{ racer.thumbnail_url }}"
-    }{% if not loop.last %},{% endif %}{% endfor %}
+    }{% if not loop.last %},{% endif %}
+    
+    {% endfor %}
+
 }

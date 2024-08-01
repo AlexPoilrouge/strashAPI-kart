@@ -21,18 +21,18 @@ strashbot:
 
 api:
   config:
-    host: "localhost:6029"
+    host: "localhost"
     port: 6029
-    base_path: "/"
+    base_path: "/kart"
     has_https: "false"
   nginx:
     access_addr: "127.0.0.1"
     access_port: 6029
     access_server_names:
-      - "strashbot.fr"
-      - "www.strashbot.fr"
+      - strashbot.fr
+      - www.strashbot.fr
     is_own_server: true
-    strashbot_conf_dirname: "strashbot_web_http_server"
+    strashbot_conf_dirname: "sites-enabled"
   service:
     workdir: "../.."
   signing_keys:
@@ -46,8 +46,8 @@ api:
 mongo_db:
   username: strashbot
   password: "Zpas5wordX_"
-  address: localhost
-  main_db_name: strashbotkarting_db
+  address: mongo
+  main_db_name: ""
   strashbot_db_main: strashbotkarting_db
 
 racers:
@@ -64,8 +64,6 @@ racers:
     addresses:
       - "strashbot.fr"
       - "193.70.41.86"
-      - "localhost"
-      - "127.0.0.1"
     core_commands:
       - name: service
         type: local
@@ -77,6 +75,22 @@ racers:
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
         timeout: 8000
     local_directory: /home/strashbot/.ringracers/addons
+  - name: srb2kart
+    port: 5028
+    thumbnail_url: http://strashbot.fr/img/server/active_thumb.png
+    aliases:
+      - "strashbot_srb2k"
+      - "strashbot_old"
+      - "srb2kart"
+    addresses:
+      - "strashbot.fr"
+      - "193.70.41.86"
+    core_commands:
+      - name: service
+        type: local
+        cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.srb2kart/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
+        timeout: 5000
+    local_directory: /home/strashbot/.srb2kart/addons    
 
 others:
   - aliases:

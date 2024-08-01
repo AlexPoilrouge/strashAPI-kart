@@ -1,0 +1,9 @@
+
+
+api:
+  test:
+    server_address: "api_server"
+    root: "kart"
+  signing_keys:
+    admin_filepath: "test/config/admin_jwtRS256.key.pub"
+    discord_user_filepath: "test/config/jwtRS256.key.pub"

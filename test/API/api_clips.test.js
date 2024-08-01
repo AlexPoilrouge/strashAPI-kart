@@ -122,10 +122,10 @@ describe("clip lookup", () => {
 
 const jwt= require("jsonwebtoken");
 
-const keys= require("../config/auth/key.json")
+// const keys= require("../config/auth/key.json")
 
 const JWT_SIGN_CONFIG= {
-        expiresIn: "1min",
+        expiresIn: "16min",
         algorithm:  "RS256"
 }
 

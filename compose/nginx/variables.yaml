@@ -1,0 +1,8 @@
+api:
+  test:
+    allow_orig: true
+  nginx:
+    access_addr: "karting"
+    access_port: 6029
+    access_server_names:
+      - "localhost"

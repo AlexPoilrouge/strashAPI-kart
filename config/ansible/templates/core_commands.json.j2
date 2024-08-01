@@ -6,5 +6,7 @@
             "type": "{{ core_cmd.type }}",
             "timeout": {{ core_cmd.timeout }}
         }{% if not loop.last %},{% endif %}{% endfor %}
+
     }{% if not loop.last %},{% endif %}{% endfor %}
+
 }

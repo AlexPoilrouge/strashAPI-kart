@@ -5,22 +5,30 @@ COPY ./docker/mirrorlist /etc/pacman.d/mirrorlist
 RUN pacman-db-upgrade
 
 RUN pacman -Syyu --noconfirm npm nodejs \
-                            ffmpeg
+                            ffmpeg \
+                            base-devel sudo python git ansible yq
 
 
-COPY package.json /var/api/strash-api/package.json
-RUN npm install --prefix /var/api/strash-api/
+RUN mkdir -p /var/kartapi_source
 
-COPY . /var/api/strash-api
+COPY config /var/kartapi_source/config  
+COPY src /var/kartapi_source/src
+COPY package.json install.sh kart.js /var/kartapi_source/
+
+
+WORKDIR /var/kartapi_source
+
+ARG VALUES_FILE=config/ansible/variables.yaml
+COPY ${VALUES_FILE}  /var/kartapi_source/config/ansible/variables.yaml
+
+RUN sh install.sh -d
+
+COPY test/config/admin_jwtRS256.key.pub test/config/jwtRS256.key.pub \
+                /var/api/strash-api/config/
+
 WORKDIR /var/api/strash-api
 
 
-ARG values_script
-
-RUN /bin/bash install/install.sh "${values_script}"
-
-
 EXPOSE 6029
-
 
 CMD [ "node", "kart.js" ]

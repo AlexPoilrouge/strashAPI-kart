@@ -3,7 +3,7 @@ services:
     image: my_nginx:0.0.0
     build:
       context: ..
-      dockerfile: compose/Dockerfile.nginx
+      dockerfile: compose/nginx/Dockerfile
     container_name: my_nginx
     ports:
       - "80:80"
@@ -18,7 +18,7 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        values_script : compose/values.api.sh
+        VALUES_FILE : compose/variables.api.yaml
     container_name: kartapi
     ports:
       - "6029:6029"
@@ -42,9 +42,7 @@ services:
     image: testkartapi:0.0.0
     build:
       context: ..
-      dockerfile: test/Dockerfile.api.test
-      args:
-        values_script : compose/values.api_test.sh
+      dockerfile: compose/test_api/Dockerfile
     container_name: testkartapi
     links:
       - "reverseproxy:api_server"

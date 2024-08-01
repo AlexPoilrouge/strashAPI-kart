@@ -9,11 +9,17 @@ const strashbot_info= require("../config/info/strashbot_info.json");
 const others_info= require("../config/info/others_info.json");
 const core_cmd= require("../config/core_commands.json")
 
-function _fetch_real_address_and_port(addr, p, karter="ringracers"){
+let default_racers="ringracers"
+if(strashbot_info){
+    var r= Object.values(strashbot_info).find(v => v.default)
+    if(r && r.name) default_racers= r.name
+}
+
+function _fetch_real_address_and_port(addr, p, karter=undefined){
     var address= addr
     var port= (Boolean(p)?p:5029)
 
-    let racer_infos= strashbot_info[karter]
+    let racer_infos= strashbot_info[karter ?? default_racers]
     if( (!Boolean(address)) || (Boolean(racer_infos) && (!(racer_infos.ADDRESS.includes(address))) && (racer_infos.NAMES.includes(address))) )
     {
         address= racer_infos.ADDRESS[0]
@@ -22,7 +28,7 @@ function _fetch_real_address_and_port(addr, p, karter="ringracers"){
     {
         matching_name_serv_obj= others_info.list.find( obj => {
                 return (obj.NAMES.includes(address))
-            })
+        })
 
         if (Boolean(matching_name_serv_obj)){
             address= matching_name_serv_obj.ADDRESS[0]
@@ -86,7 +92,7 @@ function _parse_command_obj(cmd_obj, timeout=32000){
     }
 }
 
-function process_args(addr, p=5029, karter="ringracers"){
+function process_args(addr, p=5029, karter=undefined){
     let { address, port } = _fetch_real_address_and_port(addr, p);
 
     console.log( `address: ${address}; port: ${port}`)
@@ -94,7 +100,7 @@ function process_args(addr, p=5029, karter="ringracers"){
     return ServerInfo_Promise(address, port).then( async info => {
         var serv_obj= null
 
-        let racer_infos= strashbot_info[karter]
+        let racer_infos= strashbot_info[karter ?? default_racers]
         if (racer_infos.ADDRESS.includes(address)){
             serv_obj= racer_infos
         }
@@ -111,7 +117,8 @@ function process_args(addr, p=5029, karter="ringracers"){
                         return result_obj
                     })
                     .catch(err => {
-                        if (err.status!=="bad_command") throw err;
+                        // if (err.status!=="bad_command") throw err;
+                        if (!["cmd_error", "bad_command"].includes(err.status)) throw err;
                         else {
                             console.error(`[ServerInfo_Promise (${address}, ${port}) - ERROR] ${err.error}`)
                             return { status: "unavailable", info: "internal error" }
@@ -139,9 +146,10 @@ function process_args(addr, p=5029, karter="ringracers"){
     })
 }
 
-function about_service(karter="ringracers"){
+function about_service(karter=undefined){
     var service_cmd= undefined
-    if((!Boolean(core_cmd[karter])) || !Boolean(service_cmd=core_cmd[karter].service)){
+    let _karter= karter ?? default_racers
+    if((!Boolean(core_cmd[_karter])) || !Boolean(service_cmd=core_cmd[_karter].service)){
         console.log(`[about service - config read failure] missing or bad config in 'core_commands.json' for 'service' cmd of '${karter}'…`)
         throw {status: "CONFIG_ERROR"} // caught into 500
     }

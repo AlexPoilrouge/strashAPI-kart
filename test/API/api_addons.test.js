@@ -20,7 +20,7 @@ const test_addon1_filepath= path.resolve(__dirname, "../data/test.pk3")
 const test_addon2_basename= 'test2.wad'
 const test_addon2_url= `${remote_test_addons_location_url}/${test_addon2_basename}`
 
-const keys= require("../config/auth/key.json")
+// const keys= require("../config/auth/key.json")
 
 const jwt= require("jsonwebtoken");
 
@@ -29,8 +29,8 @@ const JWT_SIGN_CONFIG= {
         algorithm:  "RS256"
 }
 
-let adminPubkey= fs.readFileSync(path.resolve(__dirname, '../config/admin_jwtRS256.key'))
-let discorduserPubkey= fs.readFileSync(path.resolve(__dirname, '../config/jwtRS256.key'))
+let adminKey= fs.readFileSync(path.resolve(__dirname, '../config/admin_jwtRS256.key'))
+let discorduserKey= fs.readFileSync(path.resolve(__dirname, '../config/jwtRS256.key'))
 
 const admin_token= jwt.sign(
         {
@@ -38,7 +38,7 @@ const admin_token= jwt.sign(
                         role: "ADMIN"
                 },
         },
-        adminPubkey,
+        adminKey,
         JWT_SIGN_CONFIG
 )
 

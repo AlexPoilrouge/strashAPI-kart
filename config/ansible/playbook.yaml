@@ -15,16 +15,16 @@
     - name: "Sources install [ {{ item }} ]"
       ansible.builtin.copy:
         remote_src: true        
-        src: "{{ root_dir }}/{{ git.cloned_repo_dir }}/{{ item }}"
+        src: "{{ server_source_dir }}/{{ item }}"
         dest: "{{ root_dir }}/{{ install_dir }}/{{ item }}"
         mode: 0644
         owner: "{{ strashbot.username }}"
         group: "{{ strashbot.username }}"
       loop:
         - "src/"
-        - "install/"
         - "kart.js"
         - "package.json"
+        # - "install/"
       loop_control:
         loop_var: item
 
@@ -32,15 +32,25 @@
       loop:
         - { filename: "strashbot_info.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/info" }
         - { filename: "others_info.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/info" }
-        - { filename: "nginx-strash-api.conf", dest_dir: "{{ root_dir }}/etc/nginx/sites-enabled" }
+        # - { filename: "nginx-strash-api.conf", dest_dir: "{{ root_dir }}/etc/nginx/sites-enabled" }
         - { filename: "strash-api.service", dest_dir: "{{ root_dir }}/etc/systemd/system" }
         - { filename: "core_commands.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
         - { filename: "config.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
         - { filename: "mongodb.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/mongodb" }
         - { filename: "key.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/auth" }
         - { filename: "clips.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
+        - { filename: "addons.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
       loop_control:
         loop_var: template_info
+    - include_tasks: ./tasks/install_templates.yaml
+      vars:
+        template_info: { filename: "nginx-strash-api.conf", dest_dir: "{{ root_dir }}/etc/nginx/{{ api.nginx.strashbot_conf_dirname }}" }
+      when: api.nginx.is_own_server
+    - include_tasks: ./tasks/install_templates.yaml
+      vars:
+        template_info: { filename: "nginx-strashbot-http-web-api.conf", dest_dir: "{{ root_dir }}/etc/nginx/{{ api.nginx.strashbot_conf_dirname }}" }
+      when: api.nginx.is_own_server is undefined or not api.nginx.is_own_server
+
 
     - name: Install packages based on package.json.
       community.general.npm:

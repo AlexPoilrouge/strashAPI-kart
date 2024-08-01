@@ -1,0 +1,23 @@
+{
+    "racers": {
+        {% for racer in racers %}"{{ racer.name }}" : {
+            "directory" : "{{ racer.local_directory }}"
+        }{% if not loop.last %},{% endif %}{% endfor %}
+
+    },
+    "file_size_MB": 256,
+    "allowed_filenameExt": [
+        ".cfg",
+        ".kart",
+        ".lua",
+        ".pk3",
+        ".wad",
+        ".txt"
+    ],
+    "allowed_mimetypes": [
+        "application/javascript",
+        "application/octet-stream",
+        "application/zip",
+        "text/plain"
+    ]
+}

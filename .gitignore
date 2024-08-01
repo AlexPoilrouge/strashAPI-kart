@@ -4,3 +4,4 @@ node_modules/
 package-lock.json
 test/node_modules/
 test/package-lock.json
+config/ansible/my_config/*

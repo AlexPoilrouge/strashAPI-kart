@@ -1,9 +1,3 @@
-server{
-    listen 80;
-    server_name {% for server_name in api.nginx.access_server_names %}{{ server_name }}{% if not loop.last %} {% endif %}{% endfor %};
-
-    access_log /var/log/nginx/strash-api-kart-access.log;
-    error_log /var/log/nginx/strash-api-kart-error.log;
 
     location ~ ^/kart/ {
         # for debug only
@@ -12,4 +6,3 @@ server{
         rewrite ^/kart/(.*) /$1 break;
         proxy_pass http://{{ api.nginx.access_addr }}:{{ api.nginx.access_port }};
     }
-}

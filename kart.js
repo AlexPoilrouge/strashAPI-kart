@@ -9,6 +9,7 @@ const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_r
 const { API_addons_add, API_addons_download }= require("./src/addons/add")
 const { API_getAddonsInfos }= require("./src/addons/infos")
 const { API_addons_enable, API_addons_disable, API_addons_remove }= require("./src/addons/manage")
+const { API_addons_get_load_order, API_addons_set_load_order }= require("./src/addons/load_order")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
@@ -86,8 +87,8 @@ app.get("/info", (req, res) => {
         )
     })
     .catch(err => {
-        console.error(`[GET /info - ERROR] ${err}`)
-        res.status(500).send(err)
+        console.error(`[GET /info - ERROR] ${JSON.stringify(err)}`)
+        res.status(500).send({status: "ERROR"})
     })
 });
 
@@ -577,4 +578,12 @@ app.post("/addons/:karter/disable", karterReqCheck, API_verifyTokenFromPOSTBody,
 */
 app.post("/addons/:karter/remove", karterReqCheck, API_verifyTokenFromPOSTBody,
             API_addons_remove
+)
+
+app.get("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_get_load_order
+)
+
+app.put("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_set_load_order
 )
