@@ -68,6 +68,7 @@ describe("addon upload", () => {
                 expect(res.body.info.name).toEqual(path.basename(test_addon1_filepath))
                 expect(res.body.info.extension).toEqual(path.extname(test_addon1_filepath))
                 expect(res.body.info.enabled).toBeFalsy()
+                expect(res.body.info.pendingOp).toBeUndefined()
                 expect(res.body.info.racer).toEqual("ringracers")
             })
             //TODO:
@@ -90,6 +91,7 @@ describe("addon upload", () => {
                 expect(res.body.result.infos[0].name).toEqual(path.basename(test_addon1_filepath))
                 expect(res.body.result.infos[0].extension).toEqual(path.extname(test_addon1_filepath))
                 expect(res.body.result.infos[0].enabled).toBeFalsy()
+                expect(res.body.result.infos[0].pendingOp).toBeUndefined()
                 expect(res.body.result.infos[0].racer).toEqual("ringracers")
             })
     })
@@ -112,6 +114,7 @@ describe("addon upload", () => {
                 expect(res.body.info.name).toEqual(path.basename(test_addon1_filepath))
                 expect(res.body.info.extension).toEqual(path.extname(test_addon1_filepath))
                 expect(res.body.info.enabled).toBeFalsy()
+                expect(res.body.info.pendingOp).toBeUndefined()
                 expect(res.body.info.racer).toEqual("srb2kart")
             })
 
@@ -123,6 +126,7 @@ describe("addon upload", () => {
                 expect(res.body.result.infos[0].name).toEqual(path.basename(test_addon1_filepath))
                 expect(res.body.result.infos[0].extension).toEqual(path.extname(test_addon1_filepath))
                 expect(res.body.result.infos[0].enabled).toBeFalsy()
+                expect(res.body.result.infos[0].pendingOp).toBeUndefined()
                 expect(res.body.result.infos[0].racer).toEqual("srb2kart")
             })
     })
@@ -162,6 +166,7 @@ describe("addon upload", () => {
                 expect(res.body.info.name).toEqual(test_addon2_basename)
                 expect(res.body.info.extension).toEqual(path.extname(test_addon2_basename))
                 expect(res.body.info.enabled).toBeFalsy()
+                expect(res.body.info.pendingOp).toBeUndefined()
                 expect(res.body.info.racer).toEqual("ringracers")
             })
 
@@ -198,6 +203,7 @@ describe("addon upload", () => {
                 expect(res.body.info.name).toEqual(test_addon2_basename)
                 expect(res.body.info.extension).toEqual(path.extname(test_addon2_basename))
                 expect(res.body.info.enabled).toBeFalsy()
+                expect(res.body.info.pendingOp).toBeUndefined()
                 expect(res.body.info.racer).toEqual("srb2kart")
             })
 
@@ -243,6 +249,7 @@ describe("addon enable", () => {
             .query({addon: path.basename(test_addon1_filepath)})
             .expect(200).then(res => {
                 expect(res.body.info.enabled).toBeTruthy()
+                expect(res.body.info.pendingOp).toBeUndefined()
                 expect(res.body.info.racer).toEqual("ringracers")
             })
     })
@@ -270,6 +277,7 @@ describe("addon enable", () => {
                     var infos= res.body.result.infos.find(addon_info => (addon_info.name===addon))
                     expect(Boolean(infos)).toBeTruthy()
                     expect(infos.enabled).toBeTruthy()
+                    expect(info.pendingOp).toBeUndefined()
                 }
             })
     })
@@ -299,6 +307,7 @@ describe("addon enable", () => {
             .expect(200).then(res => {
                 expect(res.body.info.enabled).toBeFalsy()
                 expect(res.body.info.racer).toEqual("ringracers")
+                expect(res.body.info.pendingOp).toEqual("disablement")
             })
     })
 
@@ -321,10 +330,11 @@ describe("addon enable", () => {
                 var infos= res.body.result.infos.find(addon_info => (addon_info.name===path.basename(test_addon1_filepath)))
                 expect(Boolean(infos)).toBeTruthy()
                 expect(infos.enabled).toBeFalsy()
+                expect(infos.pendingOp).toEqual("disablement")
                 infos= res.body.result.infos.find(addon_info => (addon_info.name===test_addon2_basename))
                 expect(Boolean(infos)).toBeTruthy()
                 expect(infos.enabled).toBeTruthy()
-            })
+        })
     })
 })
 

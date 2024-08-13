@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const mime = require('mime-types');
 
-const {listInstalledAddons, isAddonInstalled, isAddonEnabled, getInstalledDir}= require('./util')
+const {listInstalledAddons, isAddonInstalled, isAddonEnabled, getInstalledDir, isAddonDeletionPending, isAddonDisablementPending}= require('./util')
 
 const addons_config= require("../../config/addons.json")
 
@@ -31,6 +31,11 @@ function getAddonInfo(addon, karter){
     var addonInfo= _getFileInfo(path.join(getInstalledDir(karter), addon))
     if(!addonInfo) return undefined
     addonInfo.enabled= isAddonEnabled(karter, addon)
+    addonInfo.pendingOp= isAddonDeletionPending(karter, addon)?
+                            'deletion'
+                        :   isAddonDisablementPending(karter, addon)?
+                            'disablement'
+                        :   undefined
     addonInfo.racer= karter
 
     return addonInfo

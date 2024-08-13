@@ -182,7 +182,7 @@ async function addPendingOp(karter, op, addon_filename){
     let other_op= (op==="disablement")? "deletion" : "disablement"
 
     var change= false
-    change= change || _rmPendingOpData(data, other_op, addon_filename)
+    change= change || _removePendingOpData(data, other_op, addon_filename)
     change= change || _addPendingOpData(data, op, addon_filename)
 
     if(change) _setPendingOpData(karter, data)
@@ -206,13 +206,22 @@ async function rmPendingOp(karter, op, addon_filename){
     return data
 }
 
-function _hasPendingOp(karter, addon_filename, op){
+async function _hasPendingOp(karter, addon_filename, op){
+    let pendingOpFile= getAddonPendingOpFile(karter)
+    let lock= new FileMutex(pendingOpFile)
+    if(!_ensureFile(pendingOpFile)){
+        throw new Error(`Unable to grab pendingOpFile ('${pendingOpFile}')…`)
+    }
+    await lock.LockWait()
+
     var data= _fetchPendingOpData(karter)
+
+    lock.Unlock()
 
     return Boolean(data[op].find(fn => fn === addon_filename))
 }
-let isAddonDeletionPending = (karter, addon_filename) => _hasPendingOp(karter, addon_filename, "deletion")
-let isAddonDisablementPending = (karter, addon_filename) => _hasPendingOp(karter, addon_filename, "disablement")
+let isAddonDeletionPending = async (karter, addon_filename) => await _hasPendingOp(karter, addon_filename, "deletion")
+let isAddonDisablementPending = async (karter, addon_filename) => await _hasPendingOp(karter, addon_filename, "disablement")
 
 module.exports= { MB_size, getKarters, karterReqCheck, getInstalledDir, getEnabledDir,
                     getAddonPendingOpFile, addPendingOp, rmPendingOp, isAddonDeletionPending, isAddonDisablementPending,

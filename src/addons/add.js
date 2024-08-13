@@ -88,8 +88,17 @@ function API_addons_download(req, res, next){
             res.status(442).send({status: "file_bad_extension"})
         }
         else{
-            addon_download(racer, url).then( addonPath => {
+            addon_download(racer, url).then( async addonPath => {
                 const addonName= path.basename(addonPath)
+
+                try{
+                    if(await addons_util.isAddonDeletionPending(racer, addonName)){
+                        await addons_util.rmPendingOp(racer, 'deletion', addonName)
+                    }
+                }
+                catch(err){
+                    hereLog(`[API_addons_download]{${racer}} - failed removing the pending un-delete op for ${addonName}`)
+                }
 
                 res.status(200).send({
                     status: 'added',

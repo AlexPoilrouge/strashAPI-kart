@@ -76,7 +76,7 @@ class FileMutex{
     }
 
     isLocked(){
-        return this.filepath() && lockfile.checkSync(this.filepath)
+        return this.filepath && lockfile.checkSync(this.filepath)
     }
 }
 

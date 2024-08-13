@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { getInstalledDir, getEnabledDir }= require('./util')
+const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp }= require('./util')
 
 let hereLog= (...args) => {console.log("[kart - addons_manage]", ...args);};
 
@@ -71,7 +71,7 @@ function remove_addon(karter, addon){
     }
 }
 
-function API_addons_enable(req, res, next){
+async function API_addons_enable(req, res, next){
     let karter= req.params.karter
     let addons= req.body.addons
     if (!addons){
@@ -82,7 +82,17 @@ function API_addons_enable(req, res, next){
 
     var enabled= [], failed= []
     for(var addon of addons){
-        if(enable_addon(karter, addon)){ enabled.push(addon)}
+        if(enable_addon(karter, addon)){
+            enabled.push(addon)
+            try{
+                if(await isAddonDisablementPending(karter, addon)){
+                    await rmPendingOp(karter, 'disablement', addon)
+                }
+            }
+            catch(err){
+                hereLog(`[API_addon_enable]{${karter}} error handling re-enablement of '${addon}' - ${err}`)
+            }
+        }
         else { failed.push(addon)}
     }
 
@@ -97,7 +107,7 @@ function API_addons_enable(req, res, next){
     }
 }
 
-function API_addons_disable(req, res, next){
+async function API_addons_disable(req, res, next){
     let karter= req.params.karter
     let addons= req.body.addons
     if (!addons) return res.status(400).send({status: 'bad_request'})
@@ -105,8 +115,20 @@ function API_addons_disable(req, res, next){
 
     var disabled= [], failed= []
     for(var addon of addons){
-        if(disable_addon(karter, addon)){ disabled.push(addon)}
-        else { failed.push(addon)}
+        // if(disable_addon(karter, addon)){ disabled.push(addon)}
+        // else { failed.push(addon)}
+        try{
+            if(await addPendingOp(karter, 'disablement', addon)){
+                disabled.push(addon)
+            }
+            else{
+                hereLog(`[API_addons_disable_pending]{${karter}} Couldn't insert a pending disablement for '${addon}'`)
+                failed.push(addon)
+            }
+        } catch(err){
+            hereLog(`[API_addons_disable_pending]{${karter}} no '${addon}' disablement - ${err}`)
+            failed.push(addon)
+        }
     }
 
     if(failed.length<=0){
@@ -120,7 +142,7 @@ function API_addons_disable(req, res, next){
     }
 }
 
-function API_addons_remove(req, res, next){
+async function API_addons_remove(req, res, next){
     let karter= req.params.karter
     let addons= req.body.addons
     if (!addons) return res.status(400).send({status: 'bad_request'})
@@ -128,8 +150,20 @@ function API_addons_remove(req, res, next){
 
     var removed= [], failed= []
     for(var addon of addons){
-        if(remove_addon(karter, addon)){ removed.push(addon)}
-        else { failed.push(addon)}
+        // if(remove_addon(karter, addon)){ removed.push(addon)}
+        // else { failed.push(addon)}
+        try{
+            if(await addPendingOp(karter, 'deletion', addon)){
+                disabled.push(addon)
+            }
+            else{
+                hereLog.err(`[API_addons_remove_pending]{${karter}} Couldn't insert a pending deletion for '${addon}'`)
+                failed.push(addon)
+            }
+        } catch(err){
+            hereLog(`[API_addons_remove_pending]{${karter}} no '${addon}' deletion - ${err}`)
+            failed.push(addon)
+        }
     }
 
     if(failed.length<=0){
