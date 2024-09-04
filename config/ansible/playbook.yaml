@@ -17,7 +17,7 @@
         remote_src: true        
         src: "{{ server_source_dir }}/{{ item }}"
         dest: "{{ root_dir }}/{{ install_dir }}/{{ item }}"
-        mode: 0644
+        mode: 0744
         owner: "{{ strashbot.username }}"
         group: "{{ strashbot.username }}"
       loop:
