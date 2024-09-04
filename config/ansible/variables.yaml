@@ -71,12 +71,16 @@ racers:
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
         timeout: 5000
+      - name: pending_ops
+        type: local
+        cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"PENDING\\\""
+        timeout: 16000
     additionnal_commands:
       - name: "modes"
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
         timeout: 8000
-    local_directory: /home/strashbot/.ringracers/addons
+    addons_directory: /home/strashbot/.ringracers/addons
 
 others:
   - aliases:

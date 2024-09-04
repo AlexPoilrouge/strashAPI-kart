@@ -6,6 +6,7 @@
 
 
 var udp = require('dgram');
+const { start } = require('repl');
 
 let hereLog= (...args) => {console.log("[kart - servinfo]", ...args);};
 
@@ -14,11 +15,14 @@ let _ADDR="127.0.0.1"
 let _PORT=5029
 
 const REQUESTS={
-    ASKINFO:           {code: 12,   name:"ASKINFO"},
-    SERVERINFO:        {code: 13,   name:"SERVERINFO"},
-    PLAYERINFO:        {code: 14,   name:"PLAYERINFO"},
-    TELLFILESNEEDED:   {code: 32,   name:"TELLFILESNEEDED"},
-    MOREFILESNEEDED:   {code: 33,   name:"MOREFILESNEEDED"}
+    ASKINFO:                {code: 12,  name:"ASKINFO"},
+    SERVERINFO:             {code: 13,  name:"SERVERINFO"},
+    PLAYERINFO:             {code: 14,  name:"PLAYERINFO"},
+    TELLFILESNEEDED:        {code: 32,  name:"TELLFILESNEEDED"},
+    MOREFILESNEEDED:        {code: 33,  name:"MOREFILESNEEDED"},
+
+    DRRR_TELLFILESNEEDED:   {code: 37,  name:"TELLFILESNEEDED"},
+    DRRR_MOREFILESNEEDED:   {code: 38,  name:"MOREFILESNEEDED"}
 }
 
 const CONTROLS={
@@ -31,6 +35,12 @@ const DRRR_KARTVARS= {
     IS_DEDICATED_SERVER: 0x40,
     SPEEDMASK: 0x03,
     LOTS_OF_ADDONS: 0x20,
+    PASSWORD_PROTECTED: 0x80
+}
+
+const NETFILES= {
+    WONTSEND: 32,
+    WILLSEND: 16
 }
 
 const PK_FORMATS={
@@ -121,8 +131,19 @@ const PK_FORMATS={
         ],
 
         'minimum': 36,
+    },
+    'MOREFILESNEEDED': {
+        'format':
+            'Ifirst/'           +
+            'Bnum/'             +
+            'Bmore/'            +
+            '*sfiles',
+
+        'minimum': 6,
     }
 }
+
+const MAX_WADPATH= 512
 
 function toArrayBuffer(buf) {
     var ab = new ArrayBuffer(buf.length);
@@ -143,17 +164,28 @@ function toBuffer(ab) {
 }
 
 class Packet{
-    constructor(req){
+    constructor(req, data= undefined){
         this.type= req.code
+        this.data= data
         
         var b= Buffer.alloc(9)
-        b.fill(0x00)
-        var offset= 8
 
+        var b= undefined
+        var offset= 8
         if(this.type===REQUESTS.ASKINFO.code){
-            offset-=5
+            var b= Buffer.alloc(9)
+            b.fill(0x00)
+            offset-=6
         }
-        offset-=1
+        else if(this.type===REQUESTS.TELLFILESNEEDED.code
+            || this.type===REQUESTS.DRRR_TELLFILESNEEDED.code
+        ){
+            var b= Buffer.alloc(8)
+            b.fill(0x00)
+            offset-=4
+            b.writeUInt8((data? (data.filesneedednum ?? 0) : 0),offset)
+            offset-=2
+        }
         b.writeUInt8(req.code,offset)
         
         var b_checksum= Buffer.alloc(4)
@@ -193,8 +225,9 @@ class KartServInfo{
         this.recieved_data= []
     }
 
-    send(req){
-        var pac= new Packet(req)
+    send(req, data= undefined){
+        //hereLog(`[send] req= ${JSON.stringify(req)}; data= ${JSON.stringify(data)}`)
+        var pac= new Packet(req, data)
         if(this.closed){
             this.soc.connect(this.port,this.addr,()=>{hereLog('connect?')})
         }
@@ -208,8 +241,11 @@ class KartServInfo{
     _onMessage(msg,info){
         this.recieved_data.push(msg)
         if(this.read(REQUESTS.SERVERINFO)){}
-        else if(this.read(REQUESTS.PLAYERINFO)){
-            this._on_recieve_playerInfos(this.playerinfo)
+        else if( [ 'MOREFILESNEEDED', 'DRRR_MOREFILESNEEDED', 'PLAYERINFO' ]
+                    .some(req_id => this.read(REQUESTS[req_id]))
+        )
+        {
+            this._conclude_if_all_done();
         }
         else{
             hereLog(`[OnMessage] Unknown response from server…`)
@@ -319,6 +355,37 @@ class KartServInfo{
         return t
     }
 
+    unfileneeded(fileneedednum, fileneeded){
+        var fileinfo_ret= []
+        var l= 0
+        var pk= {}
+        for(var i=0; i<fileneedednum; ++i){
+            pk= this.php_unpack(
+                'Bstatus/' +
+                'Isize',
+                Buffer.from(fileneeded),
+                l
+            )
+            l+= 5
+
+            var name= this.cstr(fileneeded.slice(l))
+            pk['name']= name
+            l+= name.length + 1
+
+            pk['md5sum']= fileneeded.slice(l,l+16)
+            l+= 16
+
+            pk['toobig']= Boolean( !(pk['status'] & NETFILES.WILLSEND) )
+            pk['download']= Boolean( ! ( pk['toobig'] || (pk['status'] & NETFILES.WONTSEND) ) )
+
+            delete pk['status']
+
+            fileinfo_ret.push(pk)
+        }
+
+        return fileinfo_ret
+    }
+
     unpack(buf, req, unpk= True){
         var n= buf.length
         if(n<8){
@@ -338,6 +405,7 @@ class KartServInfo{
             // hereLog(`[unpack] bad type (got ${p_type})`)
             return false
         }
+        // hereLog(`[unpack] ${JSON.stringify(req)}; ${buf.length}`)
         var pkf= PK_FORMATS[req.name]
         if(!Boolean(pkf)){
             hereLog("[unpack] unknown format")
@@ -355,7 +423,8 @@ class KartServInfo{
 
             let header= this.processData(pkf['header'],pkf_min,buf,offset)
             var app_data= {}
-            if(header['application'].toLowerCase()==="ringracers"){
+            let is_drrr= (header['application'].toLowerCase()==="ringracers")
+            if(is_drrr){
                 app_data= this.processData(pkf['drrr'],pkf_min-20,buf,offset+20)
             }
             else{
@@ -371,6 +440,17 @@ class KartServInfo{
             }
 
             this.servinfo= Object.assign({}, header, app_data)
+
+            var start= app_data['fileneedednum']
+            if(start){
+                this.addons= {progress: {more: true, start}}
+                this.addons.files= this.unfileneeded(start, this.servinfo.fileneeded)
+                
+                this.send(
+                    is_drrr? REQUESTS.DRRR_TELLFILESNEEDED : REQUESTS.TELLFILESNEEDED,
+                    {filesneedednum: start}
+                )
+            }
 
             res= this.servinfo
         }
@@ -397,6 +477,33 @@ class KartServInfo{
 
             res= this.playerinfo
         }
+        else if(req.code===REQUESTS.MOREFILESNEEDED.code
+            || req.code===REQUESTS.DRRR_MOREFILESNEEDED.code
+        ){
+            let is_drrr= (req.code===REQUESTS.DRRR_MOREFILESNEEDED.code)
+
+            if(!Boolean(this.addons)) this.addons= {progress: {more: true, start: 0}, files: []}
+
+            var mpk= this.processData(pkf, pkf_min, buf, offset)
+            var more= false;
+            if(Boolean(mpk)){
+                var num= mpk['num'];
+                this.addons.progress.start+= num
+                this.addons.files= this.addons.files.concat( this.unfileneeded(num, mpk['files'] ))
+                more= mpk['more']
+            }
+            if(more){
+                this.addons.progress.more= more
+                this.send(
+                    is_drrr? REQUESTS.DRRR_TELLFILESNEEDED : REQUESTS.TELLFILESNEEDED,
+                    {filesneedednum: this.addons.progress.start})
+            }
+            else{
+                delete this.addons.progress;
+            }
+
+            res= true
+        }
 
         return Boolean(res)
     }
@@ -404,10 +511,15 @@ class KartServInfo{
     read(req, unpk=true){
         var pk= false
 
-        if (this.recieved_data.length>0){
-            var b= this.unpack(this.recieved_data[0],req,unpk)
-            if(b) this.recieved_data.shift()
-            pk= b || pk
+        try{
+            if (this.recieved_data.length>0){
+                var b= this.unpack(this.recieved_data[0],req,unpk)
+                if(b) this.recieved_data.shift()
+                pk= b || pk
+            }
+        } catch(err){
+            hereLog(`[read](error) ${err}`)
+            this.recieved_data.shift()
         }
 
         return pk
@@ -422,6 +534,10 @@ class KartServInfo{
             delete this.playerinfo
             this.playerinfo= undefined
         }
+        if(this.addons){
+            delete this.addons
+            this.addons= undefined
+        }
         if(this.timer){
             clearTimeout(this.timer)
             delete this.timer
@@ -433,7 +549,20 @@ class KartServInfo{
         this.timer= setTimeout(() =>{
             this.timedout= true
             this.soc.close()
-            if(this.timeout_func) this.timeout_func()
+            if(this.cb_timeout){
+                var data= {
+                    server: this.servinfo,
+                    players: Boolean(this.playerinfo)? this.playerinfo.players : undefined,
+                    addons: Boolean(this.addons)? this.addons.files : undefined,
+                    warning: {status: 'timeout'}
+                }
+                if(Boolean(this.addons) && Boolean(this.addons.progress) &&
+                    Boolean(this.addons.progress.more)
+                ){
+                    data.warning.state= 'incomplete_addons_list'
+                }
+                this.cb_timeout(data)
+            }
         },timeout)
     }
     
@@ -452,19 +581,29 @@ class KartServInfo{
     }
 
     onTimeOut(func){
-        this.timeout_func= func
+        this.cb_timeout= func
     }
 
-    _on_recieve_playerInfos(playerinfo){
-        if(Boolean(this.servinfo) && Boolean(playerinfo)){
-            if(Boolean(this.func_onServerBasicInfos)){
-                this.func_onServerBasicInfos({server: this.servinfo, players: playerinfo.players})
+    _conclude_if_all_done(){
+        if(Boolean(this.servinfo) && Boolean(this.playerinfo)
+            && ((!Boolean(this.addons))
+                ||  (!Boolean(this.addons.progress)) 
+                ||  (!Boolean(this.addons.progress.more))
+            )
+        ){
+            this.bye()
+            if(Boolean(this.cb_onDone)){
+                this.cb_onDone( {
+                    server: this.servinfo,
+                    players: this.playerinfo.players,
+                    addons: Boolean(this.addons)? this.addons.files : undefined
+                })
             }
         }
     }
 
-    onServerBasicInfos(func){
-        this.func_onServerBasicInfos= func
+    onDone(func){
+        this.cb_onDone= func
     }
 
     //didn't quite work properly for some reason…
@@ -509,6 +648,7 @@ class KartServInfo{
         ret_kartvars_obj.isdedicated= Boolean(input & DRRR_KARTVARS.IS_DEDICATED_SERVER)
         ret_kartvars_obj.gear= (input & DRRR_KARTVARS.SPEEDMASK)+1
         ret_kartvars_obj.lotsofaddonsflag= Boolean(input & DRRR_KARTVARS.LOTS_OF_ADDONS)
+        ret_kartvars_obj.passwordprotected= Boolean(input & DRRR_KARTVARS.PASSWORD_PROTECTED)
 
         return ret_kartvars_obj
     }
@@ -521,12 +661,11 @@ function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
 
     return new Promise((resolve,reject) =>{
         var ksi= new KartServInfo(addr, port)
-        ksi.onTimeOut(()=>{
-            ksi.bye()
+        ksi.onTimeOut((info)=>{
+            //hereLog(`[timeout] ${JSON.stringify(info, null, 2)}`)
             reject('TIMEDOUT')
         })
-        ksi.onServerBasicInfos((info)=>{
-            ksi.bye()
+        ksi.onDone((info)=>{
             if(!Boolean(info) || isEmpty(info)){
                 reject('BAD_RESPONSE')
             }
@@ -547,6 +686,16 @@ function ServerInfo_Promise(addr, port, timeout=10000,decolorize=true){
                     info.server['kartvars']= KartServInfo.ProcessDRRRKartvars(
                         info.server['kartvars']
                     )
+                }
+                if(info.addons){
+                    delete info.server['fileneeded']
+                    for(var addon of info.addons){
+                        if(Boolean(addon.md5sum)){
+                            addon.md5sum= KartServInfo.ValuesToHexString(
+                                addon.md5sum
+                            )
+                        }
+                    }
                 }
                 resolve(info)
             }

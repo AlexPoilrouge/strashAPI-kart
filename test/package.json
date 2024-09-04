@@ -4,6 +4,7 @@
     },
     "dependencies": {
         "jsonwebtoken": "^8.5.1",
+        "mime-types": "^2.1.35",
         "supertest": "^6.3.0"
     },
     "scripts": {

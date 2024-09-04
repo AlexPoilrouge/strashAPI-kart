@@ -1,0 +1,6 @@
+rules:
+  - filename:
+      text: "test2.wad"
+    rules:
+      - before:
+          text: "test.pk3"

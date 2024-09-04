@@ -1,7 +1,7 @@
 {
     "racers": {
         {% for racer in racers %}"{{ racer.name }}" : {
-            "directory" : "{{ racer.local_directory }}"
+            "directory" : "{{ racer.addons_directory }}"
         }{% if not loop.last %},{% endif %}{% endfor %}
 
     },

@@ -39,58 +39,6 @@ function _fetch_real_address_and_port(addr, p, karter=undefined){
     return { address, port }
 }
 
-function _parse_command_obj_local(cmd_obj, timeout=32000){
-    return kart_util.execute_sh_command(cmd_obj.cmd, (cmd_obj.timeout?cmd_obj.timeout:timeout))
-            .then( output => {
-                try {
-                    return JSON.parse(output)
-                }
-                catch(e) {
-                    if (Boolean(output)){
-                        try {
-                            return { result: `${output}`}
-                        }
-                        catch(e) {
-                            throw { status: "bad_output_reading", error: `Error parsing sh cmd "${cmd_obj.cmd}" - unprocessable output - ${e}`}
-                        }
-                    }
-                    else
-                        throw { status: "bad_output_parsing", error: `Error parsing sh cmd "${cmd_obj.cmd}" output: ${e}`}
-                }
-            })
-            .catch(e => {
-                if(Boolean(e.status) && e.status==='error'){
-                    throw { status: `cmd_error`, error: e.error, stdout: e.stdout, stderr: e.stderr}
-                }
-                else
-                    throw { status: `cmd_${e.status}`, error: `${Boolean(e.error)?e.error:e}` }
-            })
-}
-
-function _parse_command_obj_ssh(cmd_obj, timeout=32000){
-    return new Promise((resolve, reject) => {
-        var distant= (Boolean(cmd_obj.machine)?cmd_obj.machine:"localhost")
-        var port= (Boolean(cmd_obj.port)?cmd_obj.port:"")
-        var user= (Boolean(cmd_obj.user)?cmd_obj.user:"")
-
-        let ssh_cmd= `ssh ${Boolean(user)?`${user}@`:""}${distant} ${Boolean(port)?`-p ${port}`:""} ${cmd_obj.cmd}`
-
-        _parse_command_obj(ssh_cmd, timeout).then(result_obj => {
-            resolve(result_obj)
-        }).catch(e =>{
-            reject(e);
-        });
-    })
-}
-
-function _parse_command_obj(cmd_obj, timeout=32000){
-    if ((!Boolean(cmd_obj.type)) || (cmd_obj.type.toLowerCase()==="local")){
-        return _parse_command_obj_local(cmd_obj, timeout)
-    }
-    else if(cmd_obj.type.toLowerCase()==="ssh"){
-        return _parse_command_obj_ssh(cmd_obj, timeout)
-    }
-}
 
 function process_args(addr, p=5029, karter=undefined){
     let { address, port } = _fetch_real_address_and_port(addr, p);
@@ -112,7 +60,7 @@ function process_args(addr, p=5029, karter=undefined){
 
         if (Boolean(serv_obj) && Boolean(serv_obj.additionnal_cmd)){
             for (key in serv_obj.additionnal_cmd){
-                cmd_res= await _parse_command_obj(serv_obj.additionnal_cmd[key]).then(result_obj => {
+                cmd_res= await kart_util.parse_command_obj(serv_obj.additionnal_cmd[key]).then(result_obj => {
                         result_obj.status= "OK"
                         return result_obj
                     })
@@ -154,7 +102,7 @@ function about_service(karter=undefined){
         throw {status: "CONFIG_ERROR"} // caught into 500
     }
 
-    return _parse_command_obj(service_cmd, 5000).then(result_obj => {
+    return kart_util.parse_command_obj(service_cmd, 5000).then(result_obj => {
         if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
             throw { status: "ERROR" }
         }

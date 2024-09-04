@@ -2,6 +2,8 @@ const request= require("supertest");
 const assert = require('assert');
 const fs= require('fs')
 const path= require('path')
+const mime = require('mime-types');
+
 
 const config= require("../config/test_config.json")
 
@@ -10,6 +12,7 @@ const api_root= config.api_root
 
 console.log(`API ADRESS: '${api_url}'`)
 console.log(`API ROOT: '${Boolean(api_root)?api_root:''}'`)
+console.log("fuck")
 
 const f_addr= `${api_url}${Boolean(api_root)?`/${api_root}`:""}`
 
@@ -19,6 +22,7 @@ const remote_test_addons_location_url= 'https://github.com/AlexPoilrouge/strashA
 const test_addon1_filepath= path.resolve(__dirname, "../data/test.pk3")
 const test_addon2_basename= 'test2.wad'
 const test_addon2_url= `${remote_test_addons_location_url}/${test_addon2_basename}`
+const test_order_yaml_filepath= path.resolve(__dirname, "../data/ordering_addons.yaml")
 
 // const keys= require("../config/auth/key.json")
 
@@ -42,7 +46,10 @@ const admin_token= jwt.sign(
         JWT_SIGN_CONFIG
 )
 
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
+
 describe("addon upload", () => {
+
     test("POST /addons/ringracers/upload (no auth)", async () => {
         await request(f_addr)
             .post("/addons/ringracers/upload")
@@ -82,7 +89,7 @@ describe("addon upload", () => {
                 expect(res.body.result.number).toEqual(0)
                 expect(res.body.result.infos).toEqual([])
             })
-
+        
         await request(f_addr)
             .get("/addons/ringracers/info")
             .expect(200).then(res => {
@@ -277,7 +284,7 @@ describe("addon enable", () => {
                     var infos= res.body.result.infos.find(addon_info => (addon_info.name===addon))
                     expect(Boolean(infos)).toBeTruthy()
                     expect(infos.enabled).toBeTruthy()
-                    expect(info.pendingOp).toBeUndefined()
+                    expect(infos.pendingOp).toBeUndefined()
                 }
             })
     })
@@ -305,7 +312,7 @@ describe("addon enable", () => {
             .get("/addons/ringracers/info")
             .query({addon: path.basename(test_addon1_filepath)})
             .expect(200).then(res => {
-                expect(res.body.info.enabled).toBeFalsy()
+                expect(res.body.info.enabled).toBeTruthy()
                 expect(res.body.info.racer).toEqual("ringracers")
                 expect(res.body.info.pendingOp).toEqual("disablement")
             })
@@ -329,7 +336,7 @@ describe("addon enable", () => {
                 expect(res.body.result.number).toEqual(2)
                 var infos= res.body.result.infos.find(addon_info => (addon_info.name===path.basename(test_addon1_filepath)))
                 expect(Boolean(infos)).toBeTruthy()
-                expect(infos.enabled).toBeFalsy()
+                expect(infos.enabled).toBeTruthy()
                 expect(infos.pendingOp).toEqual("disablement")
                 infos= res.body.result.infos.find(addon_info => (addon_info.name===test_addon2_basename))
                 expect(Boolean(infos)).toBeTruthy()
@@ -360,7 +367,12 @@ describe("addon remove", () => {
         await request(f_addr)
             .get("/addons/ringracers/info")
             .query({addon: path.basename(test_addon1_filepath)})
-            .expect(404)
+            // .expect(200)
+            .expect(200).then(res => {
+                expect(res.body.info.enabled).toBeTruthy()
+                expect(res.body.info.racer).toEqual("ringracers")
+                expect(res.body.info.pendingOp).toEqual("deletion")
+            })
 
         await request(f_addr)
             .get("/addons/ringracers/info")
@@ -386,13 +398,56 @@ describe("addon remove", () => {
         await request(f_addr)
             .get("/addons/srb2kart/info")
             .expect(200).then(res => {
-                expect(res.body.result.number).toEqual(1)
+                expect(res.body.result.number).toEqual(2)
                 var infos= res.body.result.infos.find(addon_info => (addon_info.name===path.basename(test_addon1_filepath)))
                 expect(Boolean(infos)).toBeTruthy()
-                expect(infos.enabled).toBeFalsy()
+                expect(infos.enabled).toBeTruthy()
+                expect(infos.pendingOp).toEqual('disablement')
                 infos= res.body.result.infos.find(addon_info => (addon_info.name===test_addon2_basename))
-                expect(Boolean(infos)).toBeFalsy()
+                expect(Boolean(infos)).toBeTruthy()
+                expect(infos.enabled).toBeTruthy()
+                expect(infos.pendingOp).toEqual('deletion')
             })
     })
 })
 
+describe("addon load order", () => {
+    test("GET /addons/ringracers/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/ringracers/load_order")
+            .expect(404)
+    })
+
+    test("PUT /addons/ringracers/load_order (no auth)", async() => {
+        await request(f_addr)
+            .put("/addons/ringracers/load_order")
+            .attach('file', test_order_yaml_filepath)
+            .expect(403)
+    })
+
+    test("PUT /addons/ringracers/load_order (auth admin)", async () => {
+        await request(f_addr)
+            .put("/addons/ringracers/load_order")
+            .set("x-access-token", admin_token)
+            .attach('file', test_order_yaml_filepath)
+            .expect(200).then(res => {
+                expect(res.body.status).toEqual('updated')
+                expect(res.body.result.addon_order_file).toEqual(path.basename('addons_order.yaml'))
+            })
+    })
+
+    test("GET /addons/srb2kart/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/srb2kart/load_order")
+            .expect(404)
+    })
+
+    test("GET /addons/ringracers/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/ringracers/load_order")
+            .expect(200).then( res => {
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml_filepath, 'utf-8'))
+            })
+    })
+})

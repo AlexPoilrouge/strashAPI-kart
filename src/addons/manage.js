@@ -2,8 +2,13 @@ const fs = require('fs');
 const path = require('path');
 
 const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp }= require('./util')
+const { parse_command_obj}= require('../kart_util')
+
+const core_cmd= require("../../config/core_commands.json")
+
 
 let hereLog= (...args) => {console.log("[kart - addons_manage]", ...args);};
+
 
 function enable_addon(karter, addon){
     const installDirectory= getInstalledDir(karter, true)
@@ -71,11 +76,30 @@ function remove_addon(karter, addon){
     }
 }
 
+async function pendingOps_update_try(karter){
+    var pendingOps_cmd= undefined
+    if((!Boolean(core_cmd[karter])) || !Boolean(pendingOps_cmd=core_cmd[karter].pending_ops)){
+        hereLog(`[pending_ops - config read failure] missing or bad config in 'core_commands.json' for 'pending_ops' cmd of '${karter}'…`)
+        return false;
+    }
+
+    try{
+        await parse_command_obj(pendingOps_cmd, 4000)
+
+        return true;
+    } catch(err){
+        hereLog(`[pending_ops update] no pending_op update for '${karter}' - ${err}`)
+
+        return false;
+    }
+}
+
+
+
 async function API_addons_enable(req, res, next){
     let karter= req.params.karter
     let addons= req.body.addons
     if (!addons){
-        hereLog(`helllooooo? ${JSON.stringify(req.body)}`)
         return res.status(400).send({status: 'bad_request'})
     }
     if(!Array.isArray(addons)) addons= [addons]
@@ -97,9 +121,11 @@ async function API_addons_enable(req, res, next){
     }
 
     if(failed.length<=0){
+        await pendingOps_update_try(karter)
         return res.status(200).send({status: 'success', enabled})
     }
     else if(enabled.length>0){
+        await pendingOps_update_try(karter)
         return res.status(201).send({status: 'partial', enabled, failed})
     }
     else{
@@ -132,9 +158,11 @@ async function API_addons_disable(req, res, next){
     }
 
     if(failed.length<=0){
+        await pendingOps_update_try(karter)
         return res.status(200).send({status: 'success', disabled})
     }
     else if(disabled.length>0){
+        await pendingOps_update_try(karter)
         return res.status(201).send({status: 'partial', disabled, failed})
     }
     else{
@@ -154,7 +182,7 @@ async function API_addons_remove(req, res, next){
         // else { failed.push(addon)}
         try{
             if(await addPendingOp(karter, 'deletion', addon)){
-                disabled.push(addon)
+                removed.push(addon)
             }
             else{
                 hereLog.err(`[API_addons_remove_pending]{${karter}} Couldn't insert a pending deletion for '${addon}'`)
@@ -167,9 +195,11 @@ async function API_addons_remove(req, res, next){
     }
 
     if(failed.length<=0){
+        await pendingOps_update_try(karter)
         return res.status(200).send({status: 'success', removed})
     }
     else if(removed.length>0){
+        await pendingOps_update_try(karter)
         return res.status(201).send({status: 'partial', removed, failed})
     }
     else{

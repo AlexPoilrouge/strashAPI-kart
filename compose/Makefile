@@ -1,4 +1,6 @@
 
+main: .docker_start test_clean test_init
+
 .db_data_clear:
 	rm -rvf db-data/*
 
@@ -11,7 +13,14 @@ test_build: .docker_start
 test_run: test_build
 	docker-compose up
 
-test_init: .db_data_clear test_run
+test_init: test_run
+
+
+test_stop:
+	docker-compose stop
+	docker-compose rm -f
+
+test_clean: test_stop .db_data_clear
 
 
 

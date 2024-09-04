@@ -14,6 +14,7 @@ const { API_addons_get_load_order, API_addons_set_load_order }= require("./src/a
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
 const { addon_upload }= require("./src/addons/upload")
+const { addon_load_order }= require("./src/addons/load_order")
 
 
 const config= require("./config/config.json");
@@ -407,7 +408,7 @@ app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/info:
  *     get:
- *       description: push and addon url for server to download
+ *       description: fetch info about an addon file
  *       parameters:
  *         - name: karter
  *           in: path
@@ -486,7 +487,7 @@ app.post("/addons/:karter/enable", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/disable:
  *     post:
- *       description: disable installed addons on the server
+ *       description: prepare given racer for given addon disablement
  *       parameters:
  *         - name: karter
  *           in: path
@@ -535,7 +536,7 @@ app.post("/addons/:karter/disable", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/remove:
  *     post:
- *       description: remove/uninstall installed addons on the server
+ *       description: prepare given racer for given addon removal/uninstall
  *       parameters:
  *         - name: karter
  *           in: path
@@ -580,10 +581,85 @@ app.post("/addons/:karter/remove", karterReqCheck, API_verifyTokenFromPOSTBody,
             API_addons_remove
 )
 
-app.get("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBody,
+/**
+ * @swagger
+ * /addons/{karter}/load_order:
+ *     get:
+ *       description: get the addon load order config file for given racer
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *       responses:
+ *         200:
+ *           description: ok
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param? no addon order config set yet?)
+ *         500:
+ *           description: error occured server side
+*/
+app.get("/addons/:karter/load_order", karterReqCheck,
             API_addons_get_load_order
 )
 
+/**
+ * @swagger
+ * /addons/:karter/load_order:
+ *     put:
+ *       description: uploads a new addon loading order config rule file (yaml) for given racer
+ *       parameters:
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           multipart/form-data:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 file:
+ *                   type: string
+ *                   format: text/yaml
+ *       responses:
+ *         200:
+ *           description: ok
+ *         400:
+ *           description: bad request
+ *         401:
+ *           description: bad token
+ *         403:
+ *           description: forbidden access
+ *         404:
+ *           description: resource not found (bad 'karter' param?)
+ *         500:
+ *           description: error occured server side
+*/
 app.put("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBody,
+            (req, res, next) => {
+                addon_load_order.single('file')(req, res, err => {
+                    if (err instanceof multer.MulterError) {
+                        // A Multer error occurred when uploading the file
+                        return res.status(400).send({status: 'file_error', error: err.message});
+                    } else if (err) {
+                        // An unknown error occurred when uploading the file
+                        return res.status(500).send({status: 'internal_error'});
+                    }
+
+                    next();
+                })
+            },
             API_addons_set_load_order
 )

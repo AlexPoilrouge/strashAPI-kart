@@ -73,7 +73,7 @@ function _getKarterSubfile(karter, subpath, ensure){
     const filepath= path.join(addons_config.racers[karter].directory, subpath)
 
     if(ensure){ 
-        _ensureDirectory(path.dirname(dirpath))
+        _ensureDirectory(path.dirname(filepath))
 
         if(!_ensureFile(filepath)) return undefined
     }
@@ -124,7 +124,7 @@ function _fetchPendingOpData(karter){
         let pendingOp_filepath= getAddonPendingOpFile(karter, true)
         if(!pendingOp_filepath) return empty;
 
-        const absolutePath = path.resolve(filePath); // Ensure the path is absolute
+        const absolutePath = path.resolve(pendingOp_filepath); // Ensure the path is absolute
         const data = fs.readFileSync(absolutePath, 'utf8'); // Read the file as a string
 
         if(!data.deletion) data.deletion= []
@@ -143,8 +143,10 @@ function _setPendingOpData(karter, pendingOp_obj){
     if(!pendingOp_filepath) throw Error(`Cant' save pending op data to corresponding file (for ${karter})`)
 
     try {
-        const jsonData = JSON.stringify(jsonObject, null, 2); // Convert object to JSON string with pretty print
-        fs.writeFileSync(pendingOpFilename, jsonData, 'utf8'); // Write JSON data to the file
+        const absolutePath = path.resolve(pendingOp_filepath); // Ensure the path is absolute
+
+        const jsonData = JSON.stringify(pendingOp_obj, null, 2); // Convert object to JSON string with pretty print
+        fs.writeFileSync(absolutePath, jsonData, 'utf8'); // Write JSON data to the file
         console.log(`Data successfully written to ${absolutePath}`);
     } catch (error) {
         hereLog(`[fetchPendingOpData]{${karter}} can't write pending op data - ${error}`);
@@ -165,12 +167,13 @@ function _removePendingOpData(in_out_pendingOp_data, op, addon_filename){
 }
 
 function _addPendingOpData(in_out_pendingOp_data, op, addon_filename){
-    var found_check= Boolean(in_out_pendingOp_data[op].find(addon_filename))
+    var found_check= Boolean(in_out_pendingOp_data[op].find(fn => (addon_filename!==fn) ))
 
     if(!found_check){
         in_out_pendingOp_data[op].push(addon_filename)
         return true
     }
+    
     return false
 }
 
@@ -178,16 +181,22 @@ async function addPendingOp(karter, op, addon_filename){
     let lock= new FileMutex(getAddonPendingOpFile(karter))
     await lock.LockWait()
 
-    var data= _fetchPendingOpData(karter)
-    let other_op= (op==="disablement")? "deletion" : "disablement"
+    var data= undefined
+    try{
+        data= _fetchPendingOpData(karter)
+        let other_op= (op==="disablement")? "deletion" : "disablement"
 
-    var change= false
-    change= change || _removePendingOpData(data, other_op, addon_filename)
-    change= change || _addPendingOpData(data, op, addon_filename)
+        var change= false
+        change= _removePendingOpData(data, other_op, addon_filename) || change
+        change= _addPendingOpData(data, op, addon_filename) || change
 
-    if(change) _setPendingOpData(karter, data)
+        if(change) _setPendingOpData(karter, data)
+    } catch(err){
+        lock.Unlock()
+        throw(err);
+    }
 
-    lock(unlock)
+    lock.Unlock()
 
     return data
 }
@@ -196,11 +205,17 @@ async function rmPendingOp(karter, op, addon_filename){
     let lock= new FileMutex(getAddonPendingOpFile(karter))
     await lock.LockWait()
 
-    var data= _fetchPendingOpData(karter)
+    var data= undefined
+    try{
+        data= _fetchPendingOpData(karter)
 
-    if(_removePendingOpData(data, op, addon_filename))
-        _setPendingOpData(karter, data)
-
+        if(_removePendingOpData(data, op, addon_filename))
+            _setPendingOpData(karter, data)
+    }
+    catch(err){
+        lock.Unlock()
+        throw(err)
+    }
     lock.Unlock()
 
     return data
@@ -214,8 +229,14 @@ async function _hasPendingOp(karter, addon_filename, op){
     }
     await lock.LockWait()
 
-    var data= _fetchPendingOpData(karter)
-
+    var data= undefined
+    try{
+        data= _fetchPendingOpData(karter)
+    }
+    catch(err){
+        lock.Unlock()
+        throw(err)
+    }
     lock.Unlock()
 
     return Boolean(data[op].find(fn => fn === addon_filename))

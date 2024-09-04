@@ -21,9 +21,9 @@ function _getFileInfo(existing_filepath){
     };
 }
 
-function getAddonInfo(addon, karter){
+async function getAddonInfo(addon, karter){
     if(!isAddonInstalled(karter, addon)) {
-        hereLog(`addon '${addon} isn't installed`)
+        hereLog(`[get_addon_info] addon '${addon} isn't installed`)
 
         return undefined;
     }
@@ -31,9 +31,9 @@ function getAddonInfo(addon, karter){
     var addonInfo= _getFileInfo(path.join(getInstalledDir(karter), addon))
     if(!addonInfo) return undefined
     addonInfo.enabled= isAddonEnabled(karter, addon)
-    addonInfo.pendingOp= isAddonDeletionPending(karter, addon)?
+    addonInfo.pendingOp= (await isAddonDeletionPending(karter, addon))?
                             'deletion'
-                        :   isAddonDisablementPending(karter, addon)?
+                        :   (await isAddonDisablementPending(karter, addon))?
                             'disablement'
                         :   undefined
     addonInfo.racer= karter
@@ -41,17 +41,17 @@ function getAddonInfo(addon, karter){
     return addonInfo
 }
 
-const getAllAddonsInfo= (karter) =>
-    listInstalledAddons(karter).map(addonFullPath =>
-        getAddonInfo(path.basename(addonFullPath), karter)
-    )
+const getAllAddonsInfo= async (karter) =>
+    await Promise.all( listInstalledAddons(karter).map(async addonFullPath =>
+        (await getAddonInfo(path.basename(addonFullPath), karter))
+    ) )
 
-function API_getAddonsInfos(req, res, next){
+async function API_getAddonsInfos(req, res, next){
     let karter= req.params.karter
     let lookfor_addon= req.query.addon;
 
     if(lookfor_addon && lookfor_addon.length){
-        let addonInfo= getAddonInfo(lookfor_addon, karter)
+        let addonInfo= await getAddonInfo(lookfor_addon, karter)
 
         if(!addonInfo){
             res.status(404).send({
@@ -66,7 +66,7 @@ function API_getAddonsInfos(req, res, next){
         }
     } 
     else{
-        let addonsInfos= getAllAddonsInfo(karter)
+        let addonsInfos= await getAllAddonsInfo(karter)
         if(!addonsInfos){
             res.status(404).send({
                 status: "not found"

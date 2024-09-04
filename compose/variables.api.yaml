@@ -69,12 +69,16 @@ racers:
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
         timeout: 5000
+      - name: pending_ops
+        type: local
+        cmd: "true"
+        timeout: 4000
     additionnal_commands:
       - name: "modes"
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
         timeout: 8000
-    local_directory: /home/strashbot/.ringracers/addons
+    addons_directory: /home/strashbot/.ringracers/addons
   - name: srb2kart
     port: 5028
     thumbnail_url: http://strashbot.fr/img/server/active_thumb.png
@@ -90,7 +94,7 @@ racers:
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.srb2kart/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
         timeout: 5000
-    local_directory: /home/strashbot/.srb2kart/addons    
+    addons_directory: /home/strashbot/.srb2kart/addons    
 
 others:
   - aliases:
