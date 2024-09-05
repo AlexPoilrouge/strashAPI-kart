@@ -313,6 +313,10 @@ const multer = require('multer');
  *           in: header
  *           required: true
  *           type: string
+ *         - name: file
+ *           in: formData
+ *           type: file
+ *           required: true
  *       requestBody:
  *         required: true
  *         content:
@@ -369,9 +373,9 @@ app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
  *           required: true
  *           type: string
  *       requestBody:
- *           required: true
- *           content:
- *             application/json:
+ *         required: true
+ *         content:
+ *           application/json:
  *             schema:
  *               type: object
  *               properties:
@@ -611,7 +615,7 @@ app.get("/addons/:karter/load_order", karterReqCheck,
 
 /**
  * @swagger
- * /addons/:karter/load_order:
+ * /addons/{karter}/load_order:
  *     put:
  *       description: uploads a new addon loading order config rule file (yaml) for given racer
  *       parameters:
@@ -626,13 +630,13 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  *       requestBody:
  *         required: true
  *         content:
- *           multipart/form-data:
+ *           text/yaml:
  *             schema:
  *               type: object
  *               properties:
  *                 file:
  *                   type: string
- *                   format: text/yaml
+ *                   format: binary
  *       responses:
  *         200:
  *           description: ok
