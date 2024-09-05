@@ -630,7 +630,7 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  *       requestBody:
  *         required: true
  *         content:
- *           text/yaml:
+ *           multipart/form-data:
  *             schema:
  *               type: object
  *               properties:
