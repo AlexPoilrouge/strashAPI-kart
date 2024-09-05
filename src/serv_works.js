@@ -99,12 +99,12 @@ function about_service(karter=undefined){
     let _karter= karter ?? default_racers
     if((!Boolean(core_cmd[_karter])) || !Boolean(service_cmd=core_cmd[_karter].service)){
         console.log(`[about service - config read failure] missing or bad config in 'core_commands.json' for 'service' cmd of '${karter}'…`)
-        throw {status: "CONFIG_ERROR"} // caught into 500
+        throw {status: "CONFIG_ERROR"} // caught into 404
     }
 
     return kart_util.parse_command_obj(service_cmd, 5000).then(result_obj => {
         if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
-            throw { status: "ERROR" }
+            throw { status: "ERROR" } // caught into 500 
         }
 
         return {

@@ -60,6 +60,8 @@ app.use('/docs', swaggerUI.serve, swaggerUI.setup(swaggerDocs));
  * @swagger
  * /info:
  *  get:
+ *      tags:
+ *      -   base
  *      description: get info about a kart server
  *      parameters:
  *      -   name: address
@@ -95,22 +97,34 @@ app.get("/info", (req, res) => {
 
 /**
  * @swagger
- * /service:
+ * /service/{karter}:
  *  get:
- *      description: on the server, check if kart service is running
+ *      tags:
+ *      -   base
+ *      description: uploads a new addon to the karter's server
+ *      parameters:
+ *          - name: karter
+ *            in: path
+ *            required: true
+ *            type: string
  *      responses:
  *          200:
  *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
+ *          404:
+ *              description: Racer isn't register/doesn't exist
  *          500:
  *              description: an unexpected error has occured
  *              
  * */
-app.get("/service", (req, res) => {
-    about_kart_service().then(about => {
+app.get("/service/:karter", (req, res) => {
+    about_kart_service(req.params.karter).then(about => {
         res.send(about);
     })
     .catch(err => {
-        res.status(500).send({status: "ERROR"});
+        if(Boolean(err) && err.status==="CONFIG_ERROR")
+            res.status(400).send({status: "BAD_RACER"})
+        else
+            res.status(500).send({status: "ERROR"});
     })
 });
 
@@ -118,6 +132,8 @@ app.get("/service", (req, res) => {
  * @swagger
  * /clip/{clipId}:
  *  get:
+ *      tags:
+ *      -   clips
  *      description: get info about a clip giving its id
  *      parameters:
  *      -   name: clipId
@@ -140,6 +156,8 @@ app.get("/clip/:clipId", API_requestClipById);
  * @swagger
  * /clips:
  *  get:
+ *      tags:
+ *      -   clips
  *      description: get pages of clips
  *      parameters:
  *      -   name: perPage
@@ -166,6 +184,8 @@ app.get("/clips", API_requestClipsPages);
  * @swagger
  * /clip/new:
  *     post:
+ *       tags:
+ *         - clips
  *       description: add a new clip to the database
  *       parameters:
  *         - name: x-access-token
@@ -218,6 +238,8 @@ app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
  * @swagger
  * /clip/{clipId}:
  *      put:
+ *          tags:
+ *            - clips
  *          description: edit clip info
  *          parameters:
  *            - name: clipId
@@ -260,6 +282,8 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  * @swagger
  * /clip/{clipId}:
  *      delete:
+ *          tags:
+ *              - clips
  *          description: remove clip
  *          parameters:
  *              - name: clipId
@@ -303,6 +327,8 @@ const multer = require('multer');
  * @swagger
  * /addons/{karter}/upload:
  *     post:
+ *       tags:
+ *         - addons
  *       description: uploads a new addon to the karter's server
  *       parameters:
  *         - name: karter
@@ -362,6 +388,8 @@ app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/install:
  *     post:
+ *       tags:
+ *         - addons
  *       description: push and addon url for server to download
  *       parameters:
  *         - name: karter
@@ -412,6 +440,8 @@ app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/info:
  *     get:
+ *       tags:
+ *         - addons
  *       description: fetch info about an addon file
  *       parameters:
  *         - name: karter
@@ -442,6 +472,8 @@ app.get("/addons/:karter/info", karterReqCheck, API_getAddonsInfos)
  * @swagger
  * /addons/{karter}/enable:
  *     post:
+ *       tags:
+ *         - addons
  *       description: enable already installed addons on the server
  *       parameters:
  *         - name: karter
@@ -491,6 +523,8 @@ app.post("/addons/:karter/enable", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/disable:
  *     post:
+ *       tags:
+ *         - addons
  *       description: prepare given racer for given addon disablement
  *       parameters:
  *         - name: karter
@@ -540,6 +574,8 @@ app.post("/addons/:karter/disable", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/remove:
  *     post:
+ *       tags:
+ *         - addons
  *       description: prepare given racer for given addon removal/uninstall
  *       parameters:
  *         - name: karter
@@ -589,6 +625,8 @@ app.post("/addons/:karter/remove", karterReqCheck, API_verifyTokenFromPOSTBody,
  * @swagger
  * /addons/{karter}/load_order:
  *     get:
+ *       tags:
+ *         - addons
  *       description: get the addon load order config file for given racer
  *       parameters:
  *         - name: karter
@@ -617,6 +655,8 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  * @swagger
  * /addons/{karter}/load_order:
  *     put:
+ *       tags:
+ *         - addons
  *       description: uploads a new addon loading order config rule file (yaml) for given racer
  *       parameters:
  *         - name: karter
