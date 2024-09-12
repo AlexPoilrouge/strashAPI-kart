@@ -31,5 +31,7 @@ RUN echo "${SSH_USER} ALL = (root) NOPASSWD:ALL" > /etc/sudoers.d/${SSH_USER}
 
 RUN chmod 0400 /etc/sudoers.d/${SSH_USER}
 
+RUN ssh-keyscan $( [ -f /tmp/ssh_host ] && head -n1 /tmp/ssh_host || echo "127.0.0.1" ) >> /root/.ssh/known_hosts || echo "no keys…"
+
 
 CMD	 ["/usr/sbin/sshd", "-D"]
