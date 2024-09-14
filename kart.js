@@ -3,7 +3,7 @@ const bodyParser= require('body-parser');
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUI = require('swagger-ui-express');
 
-const { process_kart_info_args, about_kart_service }= require("./src/serv_works");
+const { process_kart_info_args, about_kart_service, restart_service, stop_service }= require("./src/serv_works");
 
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
 const { API_addons_add, API_addons_download }= require("./src/addons/add")
@@ -101,7 +101,7 @@ app.get("/info", (req, res) => {
  *  get:
  *      tags:
  *      -   base
- *      description: uploads a new addon to the karter's server
+ *      description: check racer's server service status (UP,DOWN, or UNAVAILABLE)
  *      parameters:
  *          - name: karter
  *            in: path
@@ -127,6 +127,108 @@ app.get("/service/:karter", (req, res) => {
             res.status(500).send({status: "ERROR"});
     })
 });
+
+/**
+ * @swagger
+ * /service/restart/{karter}:
+ *  get:
+ *      tags:
+ *      -   base
+ *      description: restarts the racer's server service
+ *      parameters:
+ *          - name: karter
+ *            in: path
+ *            required: true
+ *            type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *      responses:
+ *          200:
+ *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
+ *          404:
+ *              description: Racer isn't register/doesn't exist
+ *          500:
+ *              description: an unexpected error has occured
+ *          503:
+ *              description: operation is unavailable (cooldown?)         
+ * */
+app.get("/service/restart/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
+    restart_service(req.params.karter).then(result => {
+        if(Boolean(result.state)){
+            let state= result.state.toLowerCase()
+            if(state==="cooldown"){
+                res.status(503).send(result)
+            }
+            else if(state==="ok"){
+                res.send(result)
+            }
+            else{
+                res.status(500).send({status: "ERROR"});
+            }
+        }
+        else{
+            res.status(500).send({status: "ERROR"});
+        }
+    }).catch(err => {
+        if(Boolean(err) && err.status==="CONFIG_ERROR")
+            res.status(400).send({status: "BAD_RACER"})
+        else
+            res.status(500).send({status: "ERROR"});
+    })
+})
+
+/**
+ * @swagger
+ * /service/stop/{karter}:
+ *  get:
+ *      tags:
+ *      -   base
+ *      description: stops the racer's server service
+ *      parameters:
+ *          - name: karter
+ *            in: path
+ *            required: true
+ *            type: string
+ *         - name: x-access-token
+ *           in: header
+ *           required: true
+ *           type: string
+ *      responses:
+ *          200:
+ *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
+ *          404:
+ *              description: Racer isn't register/doesn't exist
+ *          500:
+ *              description: an unexpected error has occured
+ *          503:
+ *              description: operation is unavailable (cooldown?)         
+ * */
+app.get("/service/stop/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
+    stop_service(req.params.karter).then(result => {
+        if(Boolean(result.state)){
+            let state= result.state.toLowerCase()
+            if(state==="cooldown"){
+                res.send(result)
+            }
+            else if(state==="ok"){
+                res.status(503).send(result)
+            }
+            else{
+                res.status(500).send({status: "ERROR"});
+            }
+        }
+        else{
+            res.status(500).send({status: "ERROR"});
+        }
+    }).catch(err => {
+        if(Boolean(err) && err.status==="CONFIG_ERROR")
+            res.status(400).send({status: "BAD_RACER"})
+        else
+            res.status(500).send({status: "ERROR"});
+    })
+})
 
 /**
  * @swagger

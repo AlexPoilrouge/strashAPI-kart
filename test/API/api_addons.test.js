@@ -10,9 +10,8 @@ const config= require("../config/test_config.json")
 const api_url= config.api_adress
 const api_root= config.api_root
 
-console.log(`API ADRESS: '${api_url}'`)
-console.log(`API ROOT: '${Boolean(api_root)?api_root:''}'`)
-console.log("fuck")
+// console.log(`API ADRESS: '${api_url}'`)
+// console.log(`API ROOT: '${Boolean(api_root)?api_root:''}'`)
 
 const f_addr= `${api_url}${Boolean(api_root)?`/${api_root}`:""}`
 

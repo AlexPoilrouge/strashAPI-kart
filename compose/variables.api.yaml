@@ -69,6 +69,14 @@ racers:
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
         timeout: 5000
+      - name: restart
+        type: local
+        cmd: "echo '{ \\\"state\\\": \\\"ok\\\" }'"
+        timeout: 5000
+      - name: stop
+        type: local
+        cmd: "echo '{ \\\"state\\\": \\\"cooldown\\\", \\\"remaining_seconds\\\": 156 }'"
+        timeout: 5000
       - name: pending_ops
         type: local
         cmd: "true"
@@ -93,6 +101,14 @@ racers:
       - name: service
         type: local
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.srb2kart/racer_operator.sh\\\" \\\"IS_SERVICE_ACTIVE\\\""
+        timeout: 5000
+      - name: restart
+        type: local
+        cmd: "echo '{ \\\"state\\\": \\\"ok\\\" }'"
+        timeout: 5000
+      - name: stop
+        type: local
+        cmd: "echo '{ \\\"state\\\": \\\"cooldown\\\", \\\"remaining_seconds\\\": 96 }'"
         timeout: 5000
     addons_directory: /home/strashbot/.srb2kart/addons    
 

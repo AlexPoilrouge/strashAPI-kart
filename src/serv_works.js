@@ -94,15 +94,21 @@ function process_args(addr, p=5029, karter=undefined){
     })
 }
 
-function about_service(karter=undefined){
-    var service_cmd= undefined
+function _run_core_cmd(op="service", karter=undefined){
+    var cmd= undefined
+    let _op= (op ?? "service").toLocaleLowerCase()
+
     let _karter= karter ?? default_racers
-    if((!Boolean(core_cmd[_karter])) || !Boolean(service_cmd=core_cmd[_karter].service)){
-        console.log(`[about service - config read failure] missing or bad config in 'core_commands.json' for 'service' cmd of '${karter}'…`)
+    if((!Boolean(core_cmd[_karter])) || !Boolean(cmd=core_cmd[_karter][_op])){
+        console.log(`[service cmd - config read failure]{${_op}} missing or bad config in 'core_commands.json' for 'service' cmd of '${karter}'…`)
         throw {status: "CONFIG_ERROR"} // caught into 404
     }
 
-    return kart_util.parse_command_obj(service_cmd, 5000).then(result_obj => {
+    return kart_util.parse_command_obj(cmd, 5000)
+}
+
+function about_service(karter=undefined){
+    return _run_core_cmd('service', karter).then(result_obj => {
         if ( (!Boolean(result_obj)) || (!Boolean(result_obj.result)) ){
             throw { status: "ERROR" } // caught into 500 
         }
@@ -130,5 +136,29 @@ function about_service(karter=undefined){
     })
 }
 
+function _handle_service(op='restart', karter=undefined){
+    return _run_core_cmd(`${op}`, karter).then(result_obj => {
+        if ( (!Boolean(result_obj)) || (!Boolean(result_obj.state)) ){
+            throw { status: "CMD_ERROR" } // caught into 500 
+        }
+
+        return result_obj
+    })
+    .catch(e => {
+        console.log(`[${op} service - parse command fail] `+
+            `${Boolean(e.status)?(e.status+" - "):''}`+
+            `${(Boolean(e.error) && Boolean(e.error.code))?(`code: ${e.error.code} - `):''}` +
+            `${(Boolean(e.stderr)?e.stderr:'')}`
+        )
+
+        throw e
+    })
+}
+
+let restart_service = (karter=undefined) => _handle_service('restart', karter)
+let stop_service = (karter=undefined) => _handle_service('stop', karter)
+
 module.exports.process_kart_info_args= process_args;
 module.exports.about_kart_service= about_service;
+module.exports.restart_service= restart_service;
+module.exports.stop_service= stop_service;
