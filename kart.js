@@ -136,10 +136,10 @@ app.get("/service/:karter", (req, res) => {
  *      -   base
  *      description: restarts the racer's server service
  *      parameters:
- *          - name: karter
- *            in: path
- *            required: true
- *            type: string
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
  *         - name: x-access-token
  *           in: header
  *           required: true
@@ -187,10 +187,10 @@ app.get("/service/restart/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
  *      -   base
  *      description: stops the racer's server service
  *      parameters:
- *          - name: karter
- *            in: path
- *            required: true
- *            type: string
+ *         - name: karter
+ *           in: path
+ *           required: true
+ *           type: string
  *         - name: x-access-token
  *           in: header
  *           required: true

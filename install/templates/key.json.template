@@ -1,4 +1,0 @@
-{
-    "adminPubkey": "${AUTH_ADMIN_KEY_FILEPATH}",
-    "discorduserPubkey": "${AUTH_DISCORD_USER_KEY_FILEPATH}"
-}
