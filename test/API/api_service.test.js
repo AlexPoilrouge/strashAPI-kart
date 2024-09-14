@@ -70,7 +70,7 @@ describe("service stop srb2kart", () => {
         await request(f_addr)
                 .get("/service/stop/srb2kart")
                 .set("x-access-token", admin_token)
-                .expect(200).then(res => {
+                .expect(503).then(res => {
                     expect(res.body.state).toEqual("cooldown")
                     expect(res.body.remaining_seconds).toEqual(96)
                 })

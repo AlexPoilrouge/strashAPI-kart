@@ -210,10 +210,10 @@ app.get("/service/stop/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
         if(Boolean(result.state)){
             let state= result.state.toLowerCase()
             if(state==="cooldown"){
-                res.send(result)
+                res.status(503).send(result)
             }
             else if(state==="ok"){
-                res.status(503).send(result)
+                res.send(result)
             }
             else{
                 res.status(500).send({status: "ERROR"});
