@@ -15,57 +15,87 @@ if(strashbot_info){
     if(r && r.name) default_racers= r.name
 }
 
-function _fetch_real_address_and_port(addr, p, karter=undefined){
-    var address= addr
-    var port= (Boolean(p)?p:5029)
+function _lookForKarterThatMatchesAsAdressOrAlias(pattern, port=undefined){
+    if(!pattern) return strashbot_info[default_racers]
 
-    let racer_infos= strashbot_info[karter ?? default_racers]
-    if( (!Boolean(address)) || (Boolean(racer_infos) && (!(racer_infos.ADDRESS.includes(address))) && (racer_infos.NAMES.includes(address))) )
-    {
-        address= racer_infos.ADDRESS[0]
+    if(Object.keys(strashbot_info).includes(pattern.toLowerCase())){
+        return strashbot_info[pattern.toLowerCase()]
     }
-    else if ( Boolean(others_info.list) && ((others_info.list.length>0)))
-    {
-        matching_name_serv_obj= others_info.list.find( obj => {
-                return (obj.NAMES.includes(address))
-        })
 
-        if (Boolean(matching_name_serv_obj)){
-            address= matching_name_serv_obj.ADDRESS[0]
-            port= (matching_name_serv_obj.PORT? matching_name_serv_obj.PORT : port )
+    for(let karter_name in strashbot_info){
+        let kart_obj= strashbot_info[karter_name]
+
+        if(kart_obj.NAMES.includes(pattern)
+            ||  kart_obj.ADDRESS.includes(pattern)
+        ){
+            return kart_obj
+        }
+        if(kart_obj.NAMES.includes(pattern)){
+            return kart_obj
+        }
+        if(kart_obj.ADDRESS.includes(pattern.toLowerCase())){
+            if((!Boolean(port)) ||
+                (port===kart_obj.PORT)
+            ){
+                return kart_obj
+            }
         }
     }
 
-    return { address, port }
+    return undefined
+}
+
+function _fetch_connectionObject(addr, p){
+    var address= addr
+    var port= (Boolean(p)?p:5029)
+    
+    var karter_obj= _lookForKarterThatMatchesAsAdressOrAlias(address, port)
+    if(Boolean(karter_obj)){
+        karter_obj.connection= {
+            address: ( (karter_obj.ADDRESS.includes(address))?
+                            address
+                        :   karter_obj.ADDRESS[0]),
+            port: (karter_obj.PORT ?? port)
+        }
+
+        return karter_obj
+    }
+    else if( Boolean(others_info.list)){
+        for(let item of others_info.list){
+            var b_addrmatch= false
+            if(item.NAMES.includes(address)
+                || (b_addrmatch=item.ADDRESS.includes(address))
+            ){
+                karter_obj= Object.assign({},item)
+
+                karter_obj.connection= {
+                    address: ((b_addrmatch)? address : item.ADDRESS[0]),
+                    port: (item.PORT ?? port)
+                }
+
+                return karter_obj
+            }
+        }
+    }
+
+    return { connection: { address, port } }
 }
 
 
-function process_args(addr, p=5029, karter=undefined){
-    let { address, port } = _fetch_real_address_and_port(addr, p);
+function process_args(addr, p=5029){
+    let kartservInfos= _fetch_connectionObject(addr, p);
+    let { address, port }= kartservInfos.connection
 
     console.log( `address: ${address}; port: ${port}`)
 
     return ServerInfo_Promise(address, port).then( async info => {
-        var serv_obj= null
-
-        let racer_infos= strashbot_info[karter ?? default_racers]
-        if (racer_infos.ADDRESS.includes(address)){
-            serv_obj= racer_infos
-        }
-        else if(Boolean(others_info.list) && ((others_info.list.length>0))){
-            serv_obj= others_info.list.find( obj => {
-                    return (obj.NAMES.includes(address) || obj.ADDRESS.includes(address))
-                });
-        }
-
-        if (Boolean(serv_obj) && Boolean(serv_obj.additionnal_cmd)){
-            for (key in serv_obj.additionnal_cmd){
-                cmd_res= await kart_util.parse_command_obj(serv_obj.additionnal_cmd[key]).then(result_obj => {
+        if (Boolean(kartservInfos.additionnal_cmd)){
+            for (key in kartservInfos.additionnal_cmd){
+                cmd_res= await kart_util.parse_command_obj(kartservInfos.additionnal_cmd[key]).then(result_obj => {
                         result_obj.status= "OK"
                         return result_obj
                     })
                     .catch(err => {
-                        // if (err.status!=="bad_command") throw err;
                         if (!["cmd_error", "bad_command"].includes(err.status)) throw err;
                         else {
                             console.error(`[ServerInfo_Promise (${address}, ${port}) - ERROR] ${err.error}`)
@@ -78,8 +108,8 @@ function process_args(addr, p=5029, karter=undefined){
             }
         }
 
-        if(Boolean(serv_obj) && Boolean(serv_obj.thumbnail)){
-            info.thumbnail= serv_obj.thumbnail
+        if(Boolean(kartservInfos.thumbnail)){
+            info.thumbnail= kartservInfos.thumbnail
         }
 
         if(Boolean(address)){
