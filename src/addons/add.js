@@ -27,8 +27,8 @@ function API_addons_download(req, res, next){
             hereLog(`API_addons_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
         }
-        else if(!addons_config.allowed_mimetypes.includes(fileInfo.mimeType)){
-            hereLog(`API_addons_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimeType}`)
+        else if(!addons_config.allowed_mimetypes.includes(fileInfo.mimetype)){
+            hereLog(`API_addons_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimetype}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
         else if(!addons_config.allowed_filenameExt.includes(path.extname(utils.getFilenameFromUrl(url)))){

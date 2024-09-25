@@ -1,25 +1,13 @@
-const fs = require('fs');
 const path = require('path');
-const mime = require('mime-types');
 
+const utils= require('../utils')
 const {listInstalledAddons, isAddonInstalled, isAddonEnabled, getInstalledDir, isAddonDeletionPending, isAddonDisablementPending}= require('./addons_utils')
+
 
 const addons_config= require("../../config/addons.json")
 
 let hereLog= (...args) => {console.log("[kart - addons_infos]", ...args);};
 
-
-function _getFileInfo(existing_filepath){
-    const stats = fs.statSync(existing_filepath);
-    const filename= path.basename(existing_filepath)
-
-    return {
-        name: filename,
-        size: stats.size,
-        extension: path.extname(filename),
-        mimetype: mime.lookup(existing_filepath) || 'application/octet-stream'
-    };
-}
 
 async function getAddonInfo(addon, karter){
     if(!isAddonInstalled(karter, addon)) {
@@ -28,7 +16,7 @@ async function getAddonInfo(addon, karter){
         return undefined;
     }
 
-    var addonInfo= _getFileInfo(path.join(getInstalledDir(karter), addon))
+    var addonInfo= utils.getFileInfo(path.join(getInstalledDir(karter), addon))
     if(!addonInfo) return undefined
     addonInfo.enabled= isAddonEnabled(karter, addon)
     addonInfo.pendingOp= (await isAddonDeletionPending(karter, addon))?

@@ -129,7 +129,12 @@ function _fetchPendingOpData(karter){
         if(!data.deletion) data.deletion= []
         if(!data.disablement) data.disablement= []
 
-        return JSON.parse(data); // Parse the JSON string to an object
+        if(data===""){
+            return empty
+        }
+        else{
+            return JSON.parse(data); // Parse the JSON string to an object
+        }
     } catch (error) {
         hereLog(`[fetchPendingOpData]{${karter}} error - ${error}`);
         

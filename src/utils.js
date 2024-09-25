@@ -3,6 +3,7 @@ const child_process= require("child_process");
 const lockfile = require('proper-lockfile');
 const path = require('path');
 const fs = require('fs');
+const mime = require('mime-types');
 
 let hereLog= (...args) => {console.log("[kart_util]", ...args);};
 
@@ -140,12 +141,35 @@ class FileMutex{
     }
 }
 
+function _parseMimeType(fullMimeType) {
+    const [mimetype, charset] = fullMimeType.split(';').map(part => part.trim());
+
+    return {
+        mimetype: mimetype || null,  // Handle cases where there is no mimetype
+        charset: charset ? charset.split('=')[1] : undefined // Extract charset if it exists
+    };
+}
+
+function getFileInfo(existing_filepath){
+    const stats = fs.statSync(existing_filepath);
+    const filename= path.basename(existing_filepath);
+    const mimeinfo= _parseMimeType(mime.lookup(existing_filepath) || '');
+
+    return {
+        name: filename,
+        size: stats.size,
+        extension: path.extname(filename),
+        mimetype: (mimeinfo.mimetype || 'application/octet-stream'),
+        charset: mimeinfo.charset
+    };
+}
+
 async function fileInfo_preDownload(url){
     const headResponse = await axios.head(url);
     const fileSize = parseInt(headResponse.headers['content-length'], 10);
-    const mimeType = headResponse.headers['content-type'];
+    const mimeinfo = _parseMimeType(headResponse.headers['content-type'] || '');
 
-    return { fileSize, mimeType };
+    return { fileSize, mimetype: mimeinfo.mimetype, charset: mimeinfo.charset };
 }
 
 function getFilenameFromUrl(fileUrl) {
@@ -179,10 +203,12 @@ async function file_download(url, installDirectory, filebasename=undefined){
     // return a promise and resolve when download finishes
     return new Promise((resolve, reject) => {
         response.data.on('end', () => {
+            hereLog(`[fileDownload] wrote file from ${url} into ${addonPath}`)
             resolve(addonPath)
         })
 
         response.data.on('error', err => {
+            hereLog(`[fileDownload] error writing file from ${url} into ${addonPath} - ${err}`)
             reject(err)
         })
     })
@@ -190,6 +216,6 @@ async function file_download(url, installDirectory, filebasename=undefined){
 
 module.exports= {
     execute_sh_command, parse_command_obj,
-    _errHandle, FileMutex,
+    _errHandle, FileMutex, getFileInfo,
     fileInfo_preDownload, getFilenameFromUrl, file_download
 }

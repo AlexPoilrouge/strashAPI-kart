@@ -17,7 +17,7 @@ const f_addr= `${api_url}${Boolean(api_root)?`/${api_root}`:""}`
 
 
 
-const remote_test_addons_location_url= 'https://github.com/AlexPoilrouge/strashAPI-kart/raw/dev-ringracers-integration/test/data'
+const remote_test_addons_location_url= 'https://github.com/AlexPoilrouge/strashAPI-kart/raw/dev/test/data'
 const test_addon1_filepath= path.resolve(__dirname, "../data/test.pk3")
 const test_addon2_basename= 'test2.wad'
 const test_addon2_url= `${remote_test_addons_location_url}/${test_addon2_basename}`

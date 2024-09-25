@@ -90,8 +90,8 @@ function API_addons_load_order_download(req, res, next){
             hereLog(`API_addons_LO_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
         }
-        else if(!ORDER_YAML_MIMETYPES.includes(fileInfo.mimeType)){
-            hereLog(`API_addons_LO_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimeType}`)
+        else if(!ORDER_YAML_MIMETYPES.includes(fileInfo.mimetype)){
+            hereLog(`API_addons_LO_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimetype}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
         else if(!ORDER_YAML_EXT.includes(path.extname(utils.getFilenameFromUrl(url)))){
@@ -99,7 +99,7 @@ function API_addons_load_order_download(req, res, next){
             res.status(442).send({status: "file_bad_extension"})
         }
         else{
-            let racer_installDir= addons_utils.getInstalledDir(racer, true)
+            let racer_installDir= addons_config.racers[racer].directory
             utils.file_download(url, racer_installDir, ORDER_YAML_FILENAME).then( () => {
                 next()
             })
