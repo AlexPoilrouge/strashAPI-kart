@@ -2,15 +2,14 @@
 const fs= require('fs')
 const path = require('path');
 
-const { FileMutex } = require('../kart_util')
+const { FileMutex } = require('../utils')
 
 
 const addons_config= require("../../config/addons.json");
-const { unlock } = require('proper-lockfile');
 
 const MB_size= 1024 * 1024;
 
-let hereLog= (...args) => {console.log("[utils]", ...args);};
+let hereLog= (...args) => {console.log("[addons_utils]", ...args);};
 
 const pendingOpFilename= "pending_op.json"
 

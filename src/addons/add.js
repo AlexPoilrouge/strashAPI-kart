@@ -1,11 +1,8 @@
-const axios = require('axios');
-
 const addons_config= require("../../config/addons.json")
 
-const addons_util= require("./util");
-const url = require('url');
+const utils= require("../utils")
+const addons_utils= require("./addons_utils");
 const path = require('path');
-const fs = require('fs');
 
 
 let hereLog= (...args) => {console.log("[kart - add_addon]", ...args);};
@@ -20,61 +17,12 @@ function API_addons_add(req, res, next){
     })
 }
 
-async function fileInfo_preDownload(url){
-    const headResponse = await axios.head(url);
-    const fileSize = parseInt(headResponse.headers['content-length'], 10);
-    const mimeType = headResponse.headers['content-type'];
-
-    return { fileSize, mimeType };
-}
-
-function getFilenameFromUrl(fileUrl) {
-    let parsedUrl = new URL(fileUrl);
-    parsedUrl.query=''
-    parsedUrl.search=''
-
-    // Extract the pathname
-    const pathname = parsedUrl.pathname;
-    // Get the basename (the filename with extension)
-    const filename = path.basename(pathname);
-  
-    return filename;
-}
-
-async function addon_download(karter, url){
-    const installDirectory= addons_util.getInstalledDir(karter, true)
-    const filename= getFilenameFromUrl(url)
-
-    const addonPath= path.resolve(installDirectory, filename)
-
-    // axios image download with response type "stream"
-    const response = await axios({
-        method: 'GET',
-        url: url,
-        responseType: 'stream'
-    })
-
-    // pipe the result stream into a file on disc
-    response.data.pipe(fs.createWriteStream(addonPath))
-
-    // return a promise and resolve when download finishes
-    return new Promise((resolve, reject) => {
-        response.data.on('end', () => {
-            resolve(addonPath)
-        })
-
-        response.data.on('error', err => {
-            reject(err)
-        })
-    })
-}
-
 function API_addons_download(req, res, next){
     var { url }= req.body
     const racer= req.params.karter
-    const fileSizeLimit= addons_config.file_size_MB * addons_util.MB_size
+    const fileSizeLimit= addons_config.file_size_MB * addons_utils.MB_size
 
-    fileInfo_preDownload(url).then( fileInfo => {
+    utils.fileInfo_preDownload(url).then( fileInfo => {
         if( fileInfo.fileSize > fileSizeLimit ){
             hereLog(`API_addons_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
@@ -83,17 +31,18 @@ function API_addons_download(req, res, next){
             hereLog(`API_addons_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimeType}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
-        else if(!addons_config.allowed_filenameExt.includes(path.extname(getFilenameFromUrl(url)))){
+        else if(!addons_config.allowed_filenameExt.includes(path.extname(utils.getFilenameFromUrl(url)))){
             hereLog(`API_addons_download - file at '${url}' seems to have bad extension.`)
             res.status(442).send({status: "file_bad_extension"})
         }
         else{
-            addon_download(racer, url).then( async addonPath => {
+            let racer_installDir= addons_utils.getInstalledDir(racer, true)
+            utils.file_download(url, racer_installDir).then( async addonPath => {
                 const addonName= path.basename(addonPath)
 
                 try{
-                    if(await addons_util.isAddonDeletionPending(racer, addonName)){
-                        await addons_util.rmPendingOp(racer, 'deletion', addonName)
+                    if(await addons_utils.isAddonDeletionPending(racer, addonName)){
+                        await addons_utils.rmPendingOp(racer, 'deletion', addonName)
                     }
                 }
                 catch(err){
@@ -104,7 +53,7 @@ function API_addons_download(req, res, next){
                     status: 'added',
                     result: {
                         addon: addonName,
-                        state: addons_util.isAddonEnabled(racer, addonName)? 'enabled': 'installed'
+                        state: addons_utils.isAddonEnabled(racer, addonName)? 'enabled': 'installed'
                     }
                 })
             })

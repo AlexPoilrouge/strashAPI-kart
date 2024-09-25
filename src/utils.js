@@ -1,7 +1,8 @@
-
+const axios = require('axios');
 const child_process= require("child_process");
 const lockfile = require('proper-lockfile');
-const path = require('path')
+const path = require('path');
+const fs = require('fs');
 
 let hereLog= (...args) => {console.log("[kart_util]", ...args);};
 
@@ -139,4 +140,56 @@ class FileMutex{
     }
 }
 
-module.exports= {execute_sh_command, parse_command_obj, _errHandle, FileMutex}
+async function fileInfo_preDownload(url){
+    const headResponse = await axios.head(url);
+    const fileSize = parseInt(headResponse.headers['content-length'], 10);
+    const mimeType = headResponse.headers['content-type'];
+
+    return { fileSize, mimeType };
+}
+
+function getFilenameFromUrl(fileUrl) {
+    let parsedUrl = new URL(fileUrl);
+    parsedUrl.query=''
+    parsedUrl.search=''
+
+    // Extract the pathname
+    const pathname = parsedUrl.pathname;
+    // Get the basename (the filename with extension)
+    const filename = path.basename(pathname);
+  
+    return filename;
+}
+
+async function file_download(url, installDirectory, filebasename=undefined){
+    let filename= filebasename ?? getFilenameFromUrl(url)
+
+    const addonPath= path.resolve(installDirectory, filename)
+
+    // axios image download with response type "stream"
+    const response = await axios({
+        method: 'GET',
+        url: url,
+        responseType: 'stream'
+    })
+
+    // pipe the result stream into a file on disc
+    response.data.pipe(fs.createWriteStream(addonPath))
+
+    // return a promise and resolve when download finishes
+    return new Promise((resolve, reject) => {
+        response.data.on('end', () => {
+            resolve(addonPath)
+        })
+
+        response.data.on('error', err => {
+            reject(err)
+        })
+    })
+}
+
+module.exports= {
+    execute_sh_command, parse_command_obj,
+    _errHandle, FileMutex,
+    fileInfo_preDownload, getFilenameFromUrl, file_download
+}

@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const mime = require('mime-types');
 
-const {listInstalledAddons, isAddonInstalled, isAddonEnabled, getInstalledDir, isAddonDeletionPending, isAddonDisablementPending}= require('./util')
+const {listInstalledAddons, isAddonInstalled, isAddonEnabled, getInstalledDir, isAddonDeletionPending, isAddonDisablementPending}= require('./addons_utils')
 
 const addons_config= require("../../config/addons.json")
 

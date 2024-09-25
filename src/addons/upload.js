@@ -4,7 +4,7 @@ const path = require('path');
 
 const addons_config= require("../../config/addons.json")
 
-const addons_util= require('./util')
+const addons_util= require('./addons_utils')
 
 //Usefull ref: https://devsarticles.com/multer-file-upload-nodejs-complete-guide
 

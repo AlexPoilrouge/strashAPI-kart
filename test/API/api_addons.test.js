@@ -21,7 +21,10 @@ const remote_test_addons_location_url= 'https://github.com/AlexPoilrouge/strashA
 const test_addon1_filepath= path.resolve(__dirname, "../data/test.pk3")
 const test_addon2_basename= 'test2.wad'
 const test_addon2_url= `${remote_test_addons_location_url}/${test_addon2_basename}`
-const test_order_yaml_filepath= path.resolve(__dirname, "../data/ordering_addons.yaml")
+const test_order_yaml1_filepath= path.resolve(__dirname, "../data/ordering_addons_1.yaml")
+const test_order_yaml2_basename= 'ordering_addons_2.yaml'
+const test_order_yaml2_url= `${remote_test_addons_location_url}/${test_order_yaml2_basename}`
+const test_order_yaml2_filepath= path.resolve(__dirname, `../data/${test_order_yaml2_basename}`)
 
 // const keys= require("../config/auth/key.json")
 
@@ -366,7 +369,6 @@ describe("addon remove", () => {
         await request(f_addr)
             .get("/addons/ringracers/info")
             .query({addon: path.basename(test_addon1_filepath)})
-            // .expect(200)
             .expect(200).then(res => {
                 expect(res.body.info.enabled).toBeTruthy()
                 expect(res.body.info.racer).toEqual("ringracers")
@@ -417,18 +419,18 @@ describe("addon load order", () => {
             .expect(404)
     })
 
-    test("PUT /addons/ringracers/load_order (no auth)", async() => {
+    test("PUT /addons/ringracers/load_order (no auth) - file upload", async() => {
         await request(f_addr)
             .put("/addons/ringracers/load_order")
-            .attach('file', test_order_yaml_filepath)
+            .attach('file', test_order_yaml1_filepath)
             .expect(403)
     })
 
-    test("PUT /addons/ringracers/load_order (auth admin)", async () => {
+    test("PUT /addons/ringracers/load_order (auth admin) - file upload", async () => {
         await request(f_addr)
             .put("/addons/ringracers/load_order")
             .set("x-access-token", admin_token)
-            .attach('file', test_order_yaml_filepath)
+            .attach('file', test_order_yaml1_filepath)
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('updated')
                 expect(res.body.result.addon_order_file).toEqual(path.basename('addons_order.yaml'))
@@ -445,8 +447,35 @@ describe("addon load order", () => {
         await request(f_addr)
             .get("/addons/ringracers/load_order")
             .expect(200).then( res => {
-                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml_filepath))
-                expect(res.text).toEqual(fs.readFileSync(test_order_yaml_filepath, 'utf-8'))
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml1_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml1_filepath, 'utf-8'))
+            })
+    })
+
+    test("PUT /addons/srb2kart/load_order (no auth) - url install", async() => {
+        await request(f_addr)
+            .put("/addons/srb2kart/load_order")
+            .send({ url: test_order_yaml2_url })
+            .expect(403)
+    })
+
+    test("PUT /addons/srb2kart/load_order (auth admin) - url install", async () => {
+        await request(f_addr)
+            .put("/addons/srb2kart/load_order")
+            .set("x-access-token", admin_token)
+            .send({ url: test_order_yaml2_url })
+            .expect(200).then(res => {
+                expect(res.body.status).toEqual('updated')
+                expect(res.body.result.addon_order_file).toEqual(path.basename('addons_order.yaml'))
+            })
+    })
+
+    test("GET /addons/srb2kart/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/srb2kart/load_order")
+            .expect(200).then( res => {
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml2_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml2_filepath, 'utf-8'))
             })
     })
 })

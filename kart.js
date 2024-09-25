@@ -9,7 +9,7 @@ const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_r
 const { API_addons_add, API_addons_download }= require("./src/addons/add")
 const { API_getAddonsInfos }= require("./src/addons/infos")
 const { API_addons_enable, API_addons_disable, API_addons_remove }= require("./src/addons/manage")
-const { API_addons_get_load_order, API_addons_set_load_order }= require("./src/addons/load_order")
+const { API_addons_get_load_order, API_addons_set_load_order, API_addons_load_order_download, API_addons_load_order_install }= require("./src/addons/load_order")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
 
@@ -18,7 +18,7 @@ const { addon_load_order }= require("./src/addons/load_order")
 
 
 const config= require("./config/config.json");
-const { karterReqCheck } = require('./src/addons/util');
+const { karterReqCheck } = require('./src/addons/addons_utils');
 
 
 const app= express();
@@ -753,59 +753,138 @@ app.get("/addons/:karter/load_order", karterReqCheck,
             API_addons_get_load_order
 )
 
+
 /**
  * @swagger
  * /addons/{karter}/load_order:
- *     put:
- *       tags:
- *         - addons
- *       description: uploads a new addon loading order config rule file (yaml) for given racer
- *       parameters:
- *         - name: karter
- *           in: path
- *           required: true
- *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
- *       requestBody:
- *         required: true
- *         content:
- *           multipart/form-data:
- *             schema:
- *               type: object
- *               properties:
- *                 file:
- *                   type: string
- *                   format: binary
- *       responses:
- *         200:
- *           description: ok
- *         400:
- *           description: bad request
- *         401:
- *           description: bad token
- *         403:
- *           description: forbidden access
- *         404:
- *           description: resource not found (bad 'karter' param?)
- *         500:
- *           description: error occured server side
-*/
+ *  put:
+ *    summary: Upload or download an addon load order file
+ *    description: |
+ *      This endpoint allows either to upload a YAML file or to provide a URL to download the file for the specified karter.
+ *      - If a file is uploaded, it must be sent as a form-data field named `file`.
+ *      - If a URL is provided in the request body, the file will be downloaded from that URL, subject to size and type restrictions.
+ *    tags:
+ *      - addons
+ *    parameters:
+ *      - in: path
+ *        name: karter
+ *        schema:
+ *          type: string
+ *        required: true
+ *        description: The karter identifier.
+ *      - name: x-access-token
+ *        in: header
+ *        required: true
+ *        type: string
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        multipart/form-data:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              file:
+ *                type: string
+ *                format: binary
+ *                description: The file to be uploaded.
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            properties:
+ *              url:
+ *                type: string
+ *                format: uri
+ *                description: The URL of the file to be downloaded.
+ *    responses:
+ *      '200':
+ *        description: The addon load order file was successfully updated.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: updated
+ *                result:
+ *                  type: object
+ *                  properties:
+ *                    addon_order_file:
+ *                      type: string
+ *                      example: load_order.yaml
+ *      '400':
+ *        description: A Multer error occurred during the file upload process.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: file_error
+ *                error:
+ *                  type: string
+ *      '440':
+ *        description: The file at the provided URL exceeds the size limit.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: file_too_heavy
+ *      '441':
+ *        description: The file at the provided URL has an invalid MIME type.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: file_bad_mimetype
+ *      '442':
+ *        description: The file at the provided URL has an invalid extension.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: file_bad_extension
+ *      '500':
+ *        description: Internal server error.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: internal_error
+ *      '513':
+ *        description: Failed to download the addon from the provided URL.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: addon_download_failed
+ */
 app.put("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBody,
+            API_addons_load_order_install,
             (req, res, next) => {
-                addon_load_order.single('file')(req, res, err => {
-                    if (err instanceof multer.MulterError) {
-                        // A Multer error occurred when uploading the file
-                        return res.status(400).send({status: 'file_error', error: err.message});
-                    } else if (err) {
-                        // An unknown error occurred when uploading the file
-                        return res.status(500).send({status: 'internal_error'});
-                    }
-
-                    next();
-                })
+                if(req.file) { next(); }
+                else if (req.body.url) {
+                    API_addons_load_order_download(req,res,next)
+                }
+                else{
+                    return res.status(400).json({ error: 'No file or URL provided' });
+                }
             },
             API_addons_set_load_order
 )

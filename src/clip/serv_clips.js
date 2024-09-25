@@ -22,7 +22,7 @@ let clip_collection= (
 
 let hereLog= (...args) => {console.log("[kart - clips]", ...args);};
 
-const _errHandle= require("../kart_util")._errHandle
+const _errHandle= require("../utils")._errHandle
 
 let check_connect= () => Check_Connect(strash_db_handler)
 

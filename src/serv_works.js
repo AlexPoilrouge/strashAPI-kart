@@ -3,7 +3,7 @@
 
 const { ServerInfo_Promise }= require("./serv_info");
 
-const kart_util= require("./kart_util");
+const kart_util= require("./utils");
 
 const strashbot_info= require("../config/info/strashbot_info.json");
 const others_info= require("../config/info/others_info.json");

@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp }= require('./util')
-const { parse_command_obj}= require('../kart_util')
+const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp }= require('./addons_utils')
+const { parse_command_obj}= require('../utils')
 
 const core_cmd= require("../../config/core_commands.json")
 
