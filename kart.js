@@ -2,19 +2,17 @@ const express= require('express');
 const bodyParser= require('body-parser');
 const swaggerJSDoc = require("swagger-jsdoc");
 const swaggerUI = require('swagger-ui-express');
+const path = require('path')
 
 const { process_kart_info_args, about_kart_service, restart_service, stop_service }= require("./src/serv_works");
 
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
-const { API_addons_add, API_addons_download }= require("./src/addons/add")
+const { API_addons_download, API_addons_install }= require("./src/addons/add")
 const { API_getAddonsInfos }= require("./src/addons/infos")
 const { API_addons_enable, API_addons_disable, API_addons_remove }= require("./src/addons/manage")
 const { API_addons_get_load_order, API_addons_set_load_order, API_addons_load_order_download, API_addons_load_order_install }= require("./src/addons/load_order")
 
 const { API_verifyTokenFromPOSTBody }= require("./src/jwt/token");
-
-const { addon_upload }= require("./src/addons/upload")
-const { addon_load_order }= require("./src/addons/load_order")
 
 
 const config= require("./config/config.json");
@@ -424,118 +422,176 @@ app.delete("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestDeleteClip);
 
 require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
 
-const multer = require('multer');
-/**
- * @swagger
- * /addons/{karter}/upload:
- *     post:
- *       tags:
- *         - addons
- *       description: uploads a new addon to the karter's server
- *       parameters:
- *         - name: karter
- *           in: path
- *           required: true
- *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
- *         - name: file
- *           in: formData
- *           type: file
- *           required: true
- *       requestBody:
- *         required: true
- *         content:
- *           multipart/form-data:
- *             schema:
- *               type: object
- *               properties:
- *                 file:
- *                   type: string
- *                   format: binary
- *       responses:
- *         200:
- *           description: ok
- *         400:
- *           description: bad request
- *         401:
- *           description: bad token
- *         403:
- *           description: forbidden access
- *         404:
- *           description: resource not found (bad 'karter' param?)
- *         500:
- *           description: error occured server side
- */
-app.post("/addons/:karter/upload", karterReqCheck, API_verifyTokenFromPOSTBody,
-            (req, res, next) => {
-                addon_upload.single('file')(req, res, err => {
-                    if (err instanceof multer.MulterError) {
-                        // A Multer error occurred when uploading the file
-                        return res.status(400).send({status: 'file_error', error: err.message});
-                    } else if (err) {
-                        // An unknown error occurred when uploading the file
-                        return res.status(500).send({status: 'internal_error'});
-                    }
-
-                    next();
-                })
-            }, 
-            API_addons_add
-);
 
 /**
  * @swagger
  * /addons/{karter}/install:
- *     post:
- *       tags:
- *         - addons
- *       description: push and addon url for server to download
- *       parameters:
- *         - name: karter
- *           in: path
- *           required: true
- *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
- *       requestBody:
+ *   post:
+ *     summary: Install an addon either by uploading a file or providing a URL.
+ *     description: >
+ *       This endpoint allows you to install an addon by uploading a file or by providing a URL. 
+ *       The file can be uploaded as multipart/form-data, or the URL to the file can be sent in the request body.
+ *     tags:
+ *       - addons
+ *     parameters:
+ *       - name: karter
+ *         in: path
  *         required: true
+ *         schema:
+ *           type: string
+ *         description: The karter identifier.
+ *       - name: x-access-token
+ *         in: header
+ *         required: true
+ *         type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *                 description: File to be uploaded (required if URL is not provided).
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               url:
+ *                 type: string
+ *                 format: url
+ *                 description: URL to download the addon from (required if file is not provided).
+ *     responses:
+ *       '200':
+ *         description: Addon successfully added.
  *         content:
  *           application/json:
  *             schema:
  *               type: object
  *               properties:
- *                 url:
+ *                 status:
  *                   type: string
- *                   format: url
- *       responses:
- *         200:
- *           description: ok
- *         400:
- *           description: bad request
- *         401:
- *           description: bad token
- *         403:
- *           description: forbidden access
- *         404:
- *           description: resource not found (bad 'karter' param?)
- *         440:
- *           description: file to heavy (limit should be 256 MB)
- *         441:
- *           description: unallowed file mimetype
- *         442:
- *           description: unallowed file extension
- *         500:
- *           description: error occured server side
- *         513:
- *           description: failed to download file at given url
+ *                   example: added
+ *                 result:
+ *                   type: object
+ *                   properties:
+ *                     addon:
+ *                       type: string
+ *                       example: "addon_file.yaml"
+ *                     state:
+ *                       type: string
+ *                       example: "enabled"
+ *       '400':
+ *         description: Bad request, missing input (no file or URL provided).
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: missing_input
+ *                 error:
+ *                   type: string
+ *                   example: No file or URL provided
+ *       '401':
+ *         description: Unauthorized or token-related errors.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: auth_error
+ *                 error:
+ *                   type: string
+ *                   example: Authentication error
+ *       '403':
+ *         description: Forbidden, token required but not provided.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: forbidden
+ *                 error:
+ *                   type: string
+ *                   example: A token is required to authenticate
+ *       '440':
+ *         description: File too heavy to download from the provided URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: file_too_heavy
+ *       '441':
+ *         description: File has a bad MIME type.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: file_bad_mimetype
+ *       '442':
+ *         description: File has a bad extension.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: file_bad_extension
+ *       '500':
+ *         description: Internal server error.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: internal_error
+ *       '513':
+ *         description: Failed to download the addon from the provided URL.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 status:
+ *                   type: string
+ *                   example: addon_download_failed
 */
 app.post("/addons/:karter/install", karterReqCheck, API_verifyTokenFromPOSTBody,
-            API_addons_download
+            API_addons_install,
+            (req, res, next) => {
+                if(req.file) {
+                    res.status(200).send({
+                        status: 'added',
+                        result: {
+                            addon: req.file.filename,
+                            state: path.basename(req.file.destination)
+                        }
+                    })
+                }
+                else if (req.body.url) {
+                    API_addons_download(req,res,next)
+                }
+                else{
+                    return res.status(400).json({ status: "missing_input", error: 'No file or URL provided' });
+                }
+            }
 );
 
 /**
@@ -813,7 +869,7 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  *                      type: string
  *                      example: load_order.yaml
  *      '400':
- *        description: A Multer error occurred during the file upload process.
+ *        description: Error during the file upload process.
  *        content:
  *          application/json:
  *            schema:
@@ -822,6 +878,30 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  *                status:
  *                  type: string
  *                  example: file_error
+ *                error:
+ *                  type: string
+ *      '401':
+ *        description: Authentification error - bad, invalid, or expired token?
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: bad_auth_token
+ *                error:
+ *                  type: string
+ *      '403':
+ *        description: Forbidden acces - token needed.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: forbidden
  *                error:
  *                  type: string
  *      '440':
@@ -883,7 +963,7 @@ app.put("/addons/:karter/load_order", karterReqCheck, API_verifyTokenFromPOSTBod
                     API_addons_load_order_download(req,res,next)
                 }
                 else{
-                    return res.status(400).json({ error: 'No file or URL provided' });
+                    return res.status(400).json({ status: "missing_input", error: 'No file or URL provided' });
                 }
             },
             API_addons_set_load_order

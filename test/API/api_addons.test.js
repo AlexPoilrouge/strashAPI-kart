@@ -50,18 +50,18 @@ const admin_token= jwt.sign(
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-describe("addon upload", () => {
+describe("addon install (file upload)", () => {
 
-    test("POST /addons/ringracers/upload (no auth)", async () => {
+    test("POST /addons/ringracers/install (file upload)(no auth)", async () => {
         await request(f_addr)
-            .post("/addons/ringracers/upload")
+            .post("/addons/ringracers/install")
             .attach('file', test_addon1_filepath)
             .expect(403)
     })
 
-    test("POST /addons/ringracers/upload (auth admin)", async () => {
+    test("POST /addons/ringracers/install (file upload)(auth admin)", async () => {
         await request(f_addr)
-            .post("/addons/ringracers/upload")
+            .post("/addons/ringracers/install")
             .set("x-access-token", admin_token)
             .attach('file', test_addon1_filepath)
             .expect(200).then(res => {
@@ -105,9 +105,9 @@ describe("addon upload", () => {
             })
     })
 
-    test("POST /addons/srb2kart/upload (auth admin)", async () => {
+    test("POST /addons/srb2kart/install (file upload)(auth admin)", async () => {
         await request(f_addr)
-            .post("/addons/srb2kart/upload")
+            .post("/addons/srb2kart/install")
             .set("x-access-token", admin_token)
             .attach('file', test_addon1_filepath)
             .expect(200).then(res => {
@@ -140,24 +140,24 @@ describe("addon upload", () => {
             })
     })
 
-    test("POST /addons/mariokart/upload (badracer)", async () => {
+    test("POST /addons/mariokart/install (file upload)(badracer)", async () => {
         await request(f_addr)
-            .post("/addons/mariokart/upload")
+            .post("/addons/mariokart/install")
             .set("x-access-token", admin_token)
             .attach('file', test_addon1_filepath)
             .expect(404)
     })
 })
 
-describe("addon upload", () => {
-    test("POST /addons/ringracers/install (no auth)", async() => {
+describe("addon upload (from url)", () => {
+    test("POST /addons/ringracers/install (from url)(no auth)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/install")
             .send({url: test_addon2_url})
             .expect(403)
     })
 
-    test("POST /addons/ringracers/install (auth admin)", async() => {
+    test("POST /addons/ringracers/install (from url)(auth admin)", async() => {
         await request(f_addr)
             .post("/addons/ringracers/install")
             .set("x-access-token", admin_token)
@@ -194,7 +194,7 @@ describe("addon upload", () => {
             })
     })
 
-    test("POST /addons/srb2kart/install (auth admin)", async () => {
+    test("POST /addons/srb2kart/install (from url)(auth admin)", async () => {
         await request(f_addr)
             .post("/addons/srb2kart/install")
             .set("x-access-token", admin_token)
@@ -224,7 +224,7 @@ describe("addon upload", () => {
             })
     })
 
-    test("POST /addons/crashteamracing/upload (badracer)", async () => {
+    test("POST /addons/crashteamracing/upload (from url)(badracer)", async () => {
         await request(f_addr)
             .post("/addons/crashteamracing/upload")
             .set("x-access-token", admin_token)

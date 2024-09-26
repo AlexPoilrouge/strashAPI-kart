@@ -3,6 +3,9 @@ const addons_config= require("../../config/addons.json")
 const utils= require("../utils")
 const addons_utils= require("./addons_utils");
 const path = require('path');
+const { addon_upload }= require("./upload")
+
+const multer = require('multer')
 
 
 let hereLog= (...args) => {console.log("[kart - add_addon]", ...args);};
@@ -14,6 +17,20 @@ function API_addons_add(req, res, next){
             addon: req.file.filename,
             state: path.basename(req.file.destination)
         }
+    })
+}
+
+function API_addons_install(req, res, next){
+    addon_upload.single('file')(req, res, err => {
+        if (err instanceof multer.MulterError) {
+            // A Multer error occurred when uploading the file
+            return res.status(400).send({status: 'file_error', error: err.message});
+        } else if (err) {
+            // An unknown error occurred when uploading the file
+            return res.status(500).send({status: 'internal_error'});
+        }
+
+        next();
     })
 }
 
@@ -69,4 +86,4 @@ function API_addons_download(req, res, next){
     })
 }
 
-module.exports= { API_addons_add, API_addons_download }
+module.exports= { API_addons_add, API_addons_install, API_addons_download }
