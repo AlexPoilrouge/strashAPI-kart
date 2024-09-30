@@ -479,10 +479,10 @@ require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
  *                   properties:
  *                     addon:
  *                       type: string
- *                       example: "addon_file.yaml"
+ *                       example: "addonfile_basename.pk3"
  *                     state:
  *                       type: string
- *                       example: "enabled"
+ *                       example: "installed"
  *       '400':
  *         description: Bad request, missing input (no file or URL provided).
  *         content:
