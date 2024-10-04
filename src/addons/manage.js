@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 
-const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp }= require('./addons_utils')
+const { getInstalledDir, getEnabledDir, addPendingOp, isAddonDisablementPending, rmPendingOp, isAddonEnabled, isAddonInstalled }= require('./addons_utils')
 const { parse_command_obj}= require('../utils')
 
 const core_cmd= require("../../config/core_commands.json")
@@ -144,7 +144,9 @@ async function API_addons_disable(req, res, next){
         // if(disable_addon(karter, addon)){ disabled.push(addon)}
         // else { failed.push(addon)}
         try{
-            if(await addPendingOp(karter, 'disablement', addon)){
+            if( (!isAddonEnabled(karter, addon))
+                || (await addPendingOp(karter, 'disablement', addon))
+            ){
                 disabled.push(addon)
             }
             else{
@@ -181,7 +183,9 @@ async function API_addons_remove(req, res, next){
         // if(remove_addon(karter, addon)){ removed.push(addon)}
         // else { failed.push(addon)}
         try{
-            if(await addPendingOp(karter, 'deletion', addon)){
+            if( (!isAddonInstalled(karter, addon))
+                || (await addPendingOp(karter, 'deletion', addon))
+            ){
                 removed.push(addon)
             }
             else{
