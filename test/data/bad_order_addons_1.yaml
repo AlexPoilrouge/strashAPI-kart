@@ -1,0 +1,6 @@
+rules:
+  - filename:
+?**-fdf
+      text: "test2.wad"
+    rules:
+      - position: "first"

@@ -5,6 +5,9 @@ const path = require('path');
 const fs = require('fs');
 const mime = require('mime-types');
 
+const yaml = require('js-yaml');
+const Ajv = require('ajv');
+
 let hereLog= (...args) => {console.log("[kart_util]", ...args);};
 
 function execute_sh_command(sh_cmd_string, timeout=0){
@@ -188,7 +191,7 @@ function getFilenameFromUrl(fileUrl) {
 async function file_download(url, installDirectory, filebasename=undefined){
     let filename= filebasename ?? getFilenameFromUrl(url)
 
-    const addonPath= path.resolve(installDirectory, filename)
+    const filepath= path.resolve(installDirectory, filename)
 
     // axios image download with response type "stream"
     const response = await axios({
@@ -198,24 +201,61 @@ async function file_download(url, installDirectory, filebasename=undefined){
     })
 
     // pipe the result stream into a file on disc
-    response.data.pipe(fs.createWriteStream(addonPath))
+    response.data.pipe(fs.createWriteStream(filepath))
 
     // return a promise and resolve when download finishes
     return new Promise((resolve, reject) => {
         response.data.on('end', () => {
-            hereLog(`[fileDownload] wrote file from ${url} into ${addonPath}`)
-            resolve(addonPath)
+            hereLog(`[fileDownload] wrote file from ${url} into ${filepath}`)
+            resolve(filepath)
         })
 
         response.data.on('error', err => {
-            hereLog(`[fileDownload] error writing file from ${url} into ${addonPath} - ${err}`)
+            hereLog(`[fileDownload] error writing file from ${url} into ${filepath} - ${err}`)
             reject(err)
         })
     })
 }
 
+class YamlReadError extends Error {
+    constructor(message, errorDetails) {
+      super(message);  // Call the parent Error constructor
+      this.name = 'YamlReadError';  // Set the error name
+      this.error = errorDetails;  // Attach the error details
+      Error.captureStackTrace(this, this.constructor);  // Capture stack trace
+    }
+  }
+
+function load_yamlData(textYaml){
+    try{
+        return yaml.load(textYaml);
+    }
+    catch (e) {
+        if (e instanceof yaml.YAMLException){
+            throw new YamlReadError('Fail yaml load', e.message)
+        }
+        else{
+            throw e
+        }
+    }
+}
+
+function validateYaml(textYaml, schema){
+    let yamlData= load_yamlData(textYaml)
+
+    const ajv= new Ajv();
+    const validate= ajv.compile(schema);
+
+    if(!validate(yamlData)){
+        throw new YamlReadError('Invalid yaml schema', validate.errors)
+    }
+
+    return yamlData
+}
+
 module.exports= {
     execute_sh_command, parse_command_obj,
     _errHandle, FileMutex, getFileInfo,
-    fileInfo_preDownload, getFilenameFromUrl, file_download
+    fileInfo_preDownload, getFilenameFromUrl, file_download,
+    YamlReadError, load_yamlData, validateYaml
 }

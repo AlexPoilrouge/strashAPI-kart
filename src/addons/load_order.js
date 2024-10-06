@@ -7,12 +7,99 @@ const addons_utils= require('./addons_utils')
 const addons_config= require("../../config/addons.json");
 
 const ORDER_YAML_FILENAME="addons_order.yaml"
+const ORDER_YAML_FILENAME_TMP_NEW= `${ORDER_YAML_FILENAME}.new`
 
 let hereLog= (...args) => {console.log("[addons_load_order]", ...args);};
 
 
 const ORDER_YAML_EXT= [".yaml",".yml"]
 const ORDER_YAML_MIMETYPES= ["text/plain","text/yaml","text/x-yaml","application/x-yaml","application/yaml"]
+
+const ORDER_YAML_SCHEMA = {
+    type: 'object',
+    properties: {
+      rules: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            filename: {
+              type: 'object',
+              properties: {
+                text: { type: 'string' },
+                regex: { type: 'string', pattern: '^.*$' }
+              },
+              additionalProperties: false
+            },
+            rules: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  before: {
+                    type: 'object',
+                    properties: {
+                      text: { type: 'string' }
+                    },
+                    additionalProperties: false
+                  },
+                  after: {
+                    type: 'object',
+                    properties: {
+                      text: { type: 'string' }
+                    },
+                    additionalProperties: false
+                  },
+                  position: {
+                    type: 'string',
+                    enum: ['first', 'last']
+                  }
+                },
+                additionalProperties: false
+              }
+            }
+          },
+          additionalProperties: false
+        }
+      }
+    },
+    required: ['rules'],
+    additionalProperties: false
+}
+
+function validate_orderYaml(yamlDataText){
+    let data= utils.validateYaml(yamlDataText, ORDER_YAML_SCHEMA)
+
+    data.rules.forEach(filerule => {
+        if(filerule){
+            if (filerule.filename && filerule.filename.regex) {
+                try {
+                    new RegExp(filerule.filename.regex);
+                } catch (e) {
+                    throw new utils.YamlReadError(`Invalid regex in rule: ${filerule.filename.regex}`, e.message);
+                }
+            }
+            if (filerule.rules){
+                filerule.rules.forEach(rule=>{
+                    if( (_rn=rule.before)
+                        || (_rn=rule.after)
+                    ){
+                        if(_rn.regex){
+                            try {
+                                new RegExp(_rn.regex);
+                            } catch (e) {
+                                throw new utils.YamlReadError(`Invalid regex in rule: ${_rn.regex}`, e.message);
+                            }
+                        }
+                    }
+                })
+            }
+        }
+    });
+
+    return data
+}
+let validate_orderFile = (filepath) => validate_orderYaml(fs.readFileSync(filepath,'utf-8'))
 
 function orderYaml_fileFilter(req, file, cb){
     if(!ORDER_YAML_EXT.includes(path.extname(file.originalname))){
@@ -33,7 +120,7 @@ const order_yaml_storage = multer.diskStorage({
         cb(null, addons_config.racers[req.params.karter].directory);
     },
     filename: (req, file, cb) => {
-        cb(null, ORDER_YAML_FILENAME);
+        cb(null, `${ORDER_YAML_FILENAME}.new`);
     },
 });
 
@@ -100,7 +187,9 @@ function API_addons_load_order_download(req, res, next){
         }
         else{
             let racer_installDir= addons_config.racers[racer].directory
-            utils.file_download(url, racer_installDir, ORDER_YAML_FILENAME).then( () => {
+            utils.file_download(url, racer_installDir, ORDER_YAML_FILENAME).then( filepath => {
+                req.file= { path: filepath }
+
                 next()
             })
             .catch(err => {
@@ -116,6 +205,39 @@ function API_addons_load_order_download(req, res, next){
 }
 
 function API_addons_set_load_order(req, res, next){
+    let filepath= req.file.path
+    var filename= undefined
+    var filedir= undefined
+    try{
+        if(filepath && (filename=path.basename(filepath))!==ORDER_YAML_FILENAME){
+            filedir= path.dirname(filepath)
+            try{
+                validate_orderFile(filepath)
+            }
+            catch(err){
+                if(fs.existsSync(filepath)){
+                    fs.unlinkSync(filepath)
+                }
+
+                if (err instanceof utils.YamlReadError) {
+                    hereLog(`[API_setloadOrder] failed validating '${filepath}' - ${err}`)
+                    res.status(415).send({ status:'yaml_fail', details: err.error });
+                } else {
+                    hereLog(`[API_setloadOrder] error ${err}`)
+                    res.status(500).send({status: "internal_error"})
+                }
+                return
+            }
+
+            let dest= addons_config.racers[req.params.karter].directory
+            fs.renameSync(filepath, `${dest}/${ORDER_YAML_FILENAME}`)
+        }
+    } catch(e){
+        hereLog(`[API_setloadOrder] error handling yaml files - ${e}`)
+        res.status(500).send({status: "internal_error"})
+        return
+    }
+
     res.status(200).send({
         status: 'updated',
         result: {

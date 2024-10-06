@@ -25,6 +25,9 @@ const test_order_yaml1_filepath= path.resolve(__dirname, "../data/ordering_addon
 const test_order_yaml2_basename= 'ordering_addons_2.yaml'
 const test_order_yaml2_url= `${remote_test_addons_location_url}/${test_order_yaml2_basename}`
 const test_order_yaml2_filepath= path.resolve(__dirname, `../data/${test_order_yaml2_basename}`)
+const test_bad_order_yaml1_filepath= path.resolve(__dirname, "../data/bad_order_addons_1.yaml")
+const test_bad_order_yaml2_basename= 'bad_order_addons_2.yaml'
+const test_bad_order_yaml2_url= `${remote_test_addons_location_url}/${test_bad_order_yaml2_basename}`
 
 // const keys= require("../config/auth/key.json")
 
@@ -467,6 +470,48 @@ describe("addon load order", () => {
             .expect(200).then(res => {
                 expect(res.body.status).toEqual('updated')
                 expect(res.body.result.addon_order_file).toEqual(path.basename('addons_order.yaml'))
+            })
+    })
+
+    test("GET /addons/srb2kart/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/srb2kart/load_order")
+            .expect(200).then( res => {
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml2_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml2_filepath, 'utf-8'))
+            })
+    })
+})
+
+describe("bad addon load order", () => {
+    test("PUT /addons/ringracers/load_order (auth admin) - bad file upload", async () => {
+        await request(f_addr)
+            .put("/addons/ringracers/load_order")
+            .set("x-access-token", admin_token)
+            .attach('file', test_bad_order_yaml1_filepath)
+            .expect(415).then(res => {
+                expect(res.body.status).toEqual('yaml_fail')
+                // console.log(`>> yaml fail details - ${res.body.details} <<`)
+            })
+    })
+
+    test("GET /addons/srb2kart/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/srb2kart/load_order")
+            .expect(200).then( res => {
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml2_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml2_filepath, 'utf-8'))
+            })
+    })
+
+    test("PUT /addons/srb2kart/load_order (auth admin) - url bad yaml install", async () => {
+        await request(f_addr)
+            .put("/addons/srb2kart/load_order")
+            .set("x-access-token", admin_token)
+            .send({ url: test_bad_order_yaml2_url })
+            .expect(415).then(res => {
+                expect(res.body.status).toEqual('yaml_fail')
+                // console.log(`>> yaml fail details - ${res.body.details} <<`)
             })
     })
 

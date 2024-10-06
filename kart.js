@@ -904,6 +904,18 @@ app.get("/addons/:karter/load_order", karterReqCheck,
  *                  example: forbidden
  *                error:
  *                  type: string
+ *      '415':
+ *        description: Badly constructed yaml provided.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: yaml_fail
+ *                details:
+ *                  type: string
  *      '440':
  *        description: The file at the provided URL exceeds the size limit.
  *        content:

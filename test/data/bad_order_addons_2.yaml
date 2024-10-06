@@ -1,0 +1,5 @@
+rules:
+  - filename:
+      regex: "[8-9\\.pk3"
+    rules:
+      - position: "last"
