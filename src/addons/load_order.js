@@ -39,14 +39,16 @@ const ORDER_YAML_SCHEMA = {
                   before: {
                     type: 'object',
                     properties: {
-                      text: { type: 'string' }
+                      text: { type: 'string' },
+                      regex: { type: 'string', pattern: '^.*$' }
                     },
                     additionalProperties: false
                   },
                   after: {
                     type: 'object',
                     properties: {
-                      text: { type: 'string' }
+                      text: { type: 'string' },
+                      regex: { type: 'string', pattern: '^.*$' }
                     },
                     additionalProperties: false
                   },
@@ -221,7 +223,10 @@ function API_addons_set_load_order(req, res, next){
 
                 if (err instanceof utils.YamlReadError) {
                     hereLog(`[API_setloadOrder] failed validating '${filepath}' - ${err}`)
-                    res.status(415).send({ status:'yaml_fail', details: err.error });
+                    res.status(415).send({
+                        status:'yaml_fail',
+                        details: (err.error)? `${err.error}` : `${err}`
+                    });
                 } else {
                     hereLog(`[API_setloadOrder] error ${err}`)
                     res.status(500).send({status: "internal_error"})

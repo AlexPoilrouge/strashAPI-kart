@@ -28,6 +28,7 @@ const test_order_yaml2_filepath= path.resolve(__dirname, `../data/${test_order_y
 const test_bad_order_yaml1_filepath= path.resolve(__dirname, "../data/bad_order_addons_1.yaml")
 const test_bad_order_yaml2_basename= 'bad_order_addons_2.yaml'
 const test_bad_order_yaml2_url= `${remote_test_addons_location_url}/${test_bad_order_yaml2_basename}`
+const test_bad_order_yaml3_filepath= path.resolve(__dirname, "../data/bad_order_addons_3.yaml")
 
 // const keys= require("../config/auth/key.json")
 
@@ -484,7 +485,7 @@ describe("addon load order", () => {
 })
 
 describe("bad addon load order", () => {
-    test("PUT /addons/ringracers/load_order (auth admin) - bad file upload", async () => {
+    test("PUT /addons/ringracers/load_order (auth admin) - bad file upload (1)", async () => {
         await request(f_addr)
             .put("/addons/ringracers/load_order")
             .set("x-access-token", admin_token)
@@ -509,6 +510,25 @@ describe("bad addon load order", () => {
             .put("/addons/srb2kart/load_order")
             .set("x-access-token", admin_token)
             .send({ url: test_bad_order_yaml2_url })
+            .expect(415).then(res => {
+                expect(res.body.status).toEqual('yaml_fail')
+                // console.log(`>> yaml fail details - ${res.body.details} <<`)
+            })
+    })
+
+    test("GET /addons/srb2kart/load_order", async() => {
+        await request(f_addr)
+            .get("/addons/srb2kart/load_order")
+            .expect(200).then( res => {
+                expect(res.header['content-type'].split(';')[0]).toEqual(mime.lookup(test_order_yaml2_filepath))
+                expect(res.text).toEqual(fs.readFileSync(test_order_yaml2_filepath, 'utf-8'))
+            })
+    })
+    test("PUT /addons/ringracers/load_order (auth admin) - bad file upload (2)", async () => {
+        await request(f_addr)
+            .put("/addons/ringracers/load_order")
+            .set("x-access-token", admin_token)
+            .attach('file', test_bad_order_yaml3_filepath)
             .expect(415).then(res => {
                 expect(res.body.status).toEqual('yaml_fail')
                 // console.log(`>> yaml fail details - ${res.body.details} <<`)

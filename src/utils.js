@@ -247,7 +247,7 @@ function validateYaml(textYaml, schema){
     const validate= ajv.compile(schema);
 
     if(!validate(yamlData)){
-        throw new YamlReadError('Invalid yaml schema', validate.errors)
+        throw new YamlReadError('Invalid yaml schema', JSON.stringify(validate.errors,null,4))
     }
 
     return yamlData

@@ -1,0 +1,5 @@
+rules:
+  - filename:
+      regex: ".*v2\\.[0-9]+\\.pk3"
+    rules:
+      - borg: "whatever"
