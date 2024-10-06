@@ -1,5 +1,5 @@
 rules:
   - filename:
-      regex: "*\\.pk3"
+      regex: ".*\\.pk3"
     rules:
       - position: "first"

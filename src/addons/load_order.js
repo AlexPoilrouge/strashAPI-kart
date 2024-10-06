@@ -120,7 +120,7 @@ const order_yaml_storage = multer.diskStorage({
         cb(null, addons_config.racers[req.params.karter].directory);
     },
     filename: (req, file, cb) => {
-        cb(null, `${ORDER_YAML_FILENAME}.new`);
+        cb(null, ORDER_YAML_FILENAME_TMP_NEW);
     },
 });
 
@@ -187,7 +187,7 @@ function API_addons_load_order_download(req, res, next){
         }
         else{
             let racer_installDir= addons_config.racers[racer].directory
-            utils.file_download(url, racer_installDir, ORDER_YAML_FILENAME).then( filepath => {
+            utils.file_download(url, racer_installDir, ORDER_YAML_FILENAME_TMP_NEW).then( filepath => {
                 req.file= { path: filepath }
 
                 next()
