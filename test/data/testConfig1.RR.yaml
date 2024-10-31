@@ -1,0 +1,14 @@
+name: "rr_test1"
+triggertime: '* * * * 4'
+configuration:
+  commands:
+  - command: servername
+    arguments: [ 'cool server' ]
+  - command: antigrief
+    arguments: [ 'yes' ]
+  addons:
+    enable:
+      - "lol.pk3"
+      - "meh.wad"
+    disable:
+      - "bad.pk3"

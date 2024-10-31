@@ -18,7 +18,8 @@ services:
       context: ..
       dockerfile: Dockerfile
       args:
-        VALUES_FILE : compose/variables.api.yaml
+        VALUES_FILE: compose/variables.api.yaml
+        MODE: tester
     container_name: kartapi
     ports:
       - "6029:6029"

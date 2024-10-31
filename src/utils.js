@@ -10,6 +10,13 @@ const Ajv = require('ajv');
 
 let hereLog= (...args) => {console.log("[kart_util]", ...args);};
 
+const YAML_EXT= [".yaml",".yml"]
+const YAML_MIMETYPES= ["text/plain","text/yaml","text/x-yaml","application/x-yaml","application/yaml"]
+
+const MB_size= 1024 * 1024;
+
+
+
 function execute_sh_command(sh_cmd_string, timeout=0){
     return new Promise( (resolve, reject) => {
         try{
@@ -95,6 +102,41 @@ function parse_command_obj(cmd_obj, default_timeout=32000){
 
 let _errHandle= (err, fallbackFn) =>    {  if((Boolean(err)) && Boolean(err.status)) return err;
     else return fallbackFn(err);
+}
+
+
+function ensureDirectory(dirPath){
+    try{
+        if (!fs.existsSync(dirPath)) {
+            hereLog(`ensureDirectory(${dirPath}) - creating '${dirPath}'`)
+
+            fs.mkdirSync(dirPath, { recursive: true });
+        }
+
+        return true
+    } catch (error) {
+        hereLog(`[ensureDirectory](${dirPath}) - ${error}`)
+        return false;
+    }
+}
+
+function ensureFile(filePath, defaultData=''){
+    try {
+        if (fs.existsSync(filePath)) {
+            if (fs.statSync(filePath).isFile()) {
+                return true;
+            } else {
+                hereLog(`[ensureFile](${filePath}) - path exists as a directory…`)
+                return false;
+            }
+        } else {
+            fs.writeFileSync(filePath, defaultData);
+            return true;
+        }
+    } catch (error) {
+        hereLog(`[ensureFile](${filePath}) - ${error}`)
+        return false;
+    }
 }
 
 class FileMutex{
@@ -224,7 +266,7 @@ class YamlReadError extends Error {
       this.error = errorDetails;  // Attach the error details
       Error.captureStackTrace(this, this.constructor);  // Capture stack trace
     }
-  }
+}
 
 function load_yamlData(textYaml){
     try{
@@ -240,22 +282,41 @@ function load_yamlData(textYaml){
     }
 }
 
-function validateYaml(textYaml, schema){
+function validateYaml(textYaml, schema= null){
     let yamlData= load_yamlData(textYaml)
 
-    const ajv= new Ajv();
-    const validate= ajv.compile(schema);
+    if(schema){
+        const ajv= new Ajv();
+        const validate= ajv.compile(schema);
 
-    if(!validate(yamlData)){
-        throw new YamlReadError('Invalid yaml schema', JSON.stringify(validate.errors,null,4))
+        if(!validate(yamlData)){
+            throw new YamlReadError('Invalid yaml schema', JSON.stringify(validate.errors,null,4))
+        }
     }
 
     return yamlData
 }
 
+function yaml_multer_fileFilter(req, file, cb){
+    if(!YAML_EXT.includes(path.extname(file.originalname))){
+        hereLog(`fileFilter - file '${file.originalname}' has bad extension…`)
+        cb(new Error('File must have allowed filename extension'), false)
+    }
+    else if(!YAML_MIMETYPES.includes(file.mimetype)){
+        hereLog(`fileFilter - file '${file.originalname}' has bad mimetype (${file.mimetype})…`)
+        cb(new Error('File with unallowed mime type'), false)
+    }
+    else{
+        cb(null, true);
+    }
+}
+
 module.exports= {
+    YAML_EXT, YAML_MIMETYPES, MB_size,
     execute_sh_command, parse_command_obj,
     _errHandle, FileMutex, getFileInfo,
+    ensureDirectory, ensureFile,
     fileInfo_preDownload, getFilenameFromUrl, file_download,
-    YamlReadError, load_yamlData, validateYaml
+    YamlReadError, load_yamlData, validateYaml,
+    yaml_multer_fileFilter
 }

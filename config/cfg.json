@@ -1,0 +1,10 @@
+{
+    "racers": {
+        "srb2kart" : {
+            "directory": "/home/strashbot/.srb2kart/cfg"
+        },
+        "ringracers" : {
+            "directory": "/home/strashbot/.ringracers/cfg"
+        }
+    }
+}

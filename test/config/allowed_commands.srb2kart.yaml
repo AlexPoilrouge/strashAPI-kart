@@ -1,0 +1,15 @@
+allowed_commands:
+   - kartspeed
+   - karteliminatelast
+   - showping
+   - allowjoin
+   - tauntvoices
+   - taunthorns
+   - maxplayers
+   - kartvoices
+   - kartinvinsfx
+   - kartminimap
+   - kartcheck
+   - kartdisplayspeed
+   - servername
+   - advertise

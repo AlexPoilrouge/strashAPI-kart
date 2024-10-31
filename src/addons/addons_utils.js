@@ -2,12 +2,10 @@
 const fs= require('fs')
 const path = require('path');
 
-const { FileMutex } = require('../utils')
+const { FileMutex, ensureDirectory, ensureFile } = require('../utils')
 
 
 const addons_config= require("../../config/addons.json");
-
-const MB_size= 1024 * 1024;
 
 let hereLog= (...args) => {console.log("[addons_utils]", ...args);};
 
@@ -29,41 +27,10 @@ function karterReqCheck(req, res, next){
     }
 }
 
-function _ensureDirectory(in_path){
-    const isFile = path.extname(in_path) !== '';
-    // If it's a file path, get the containing directory
-    const dirPath = isFile ? path.dirname(in_path) : in_path;
-
-    if (!fs.existsSync(dirPath)) {
-        hereLog(`ensureDirectory(${dirPath}) - creating '${dirPath}'`)
-
-        fs.mkdirSync(dirPath, { recursive: true });
-    }
-}
-
-function _ensureFile(filePath){
-    try {
-        if (fs.existsSync(filePath)) {
-            if (fs.statSync(filePath).isFile()) {
-                return true;
-            } else {
-                hereLog(`[ensureFile](${path}) - path exists as a directory…`)
-                return false;
-            }
-        } else {
-            fs.writeFileSync(filePath, '');
-            return true;
-        }
-    } catch (error) {
-        hereLog(`[ensureFile](${path}) - ${error}`)
-        return false;
-    }
-}
-
 function _getKarterSubdir(karter, dirbasename, ensure){
     const dirpath= path.join(addons_config.racers[karter].directory, dirbasename)
 
-    if(ensure) _ensureDirectory(dirpath)
+    if(ensure) ensureDirectory(dirpath)
 
     return dirpath
 }
@@ -72,9 +39,9 @@ function _getKarterSubfile(karter, subpath, ensure){
     const filepath= path.join(addons_config.racers[karter].directory, subpath)
 
     if(ensure){ 
-        _ensureDirectory(path.dirname(filepath))
+        ensureDirectory(path.dirname(filepath))
 
-        if(!_ensureFile(filepath)) return undefined
+        if(!ensureFile(filepath)) return undefined
     }
 
     return filepath
@@ -228,7 +195,7 @@ async function rmPendingOp(karter, op, addon_filename){
 async function _hasPendingOp(karter, addon_filename, op){
     let pendingOpFile= getAddonPendingOpFile(karter)
     let lock= new FileMutex(pendingOpFile)
-    if(!_ensureFile(pendingOpFile)){
+    if(!ensureFile(pendingOpFile)){
         throw new Error(`Unable to grab pendingOpFile ('${pendingOpFile}')…`)
     }
     await lock.LockWait()
@@ -248,7 +215,7 @@ async function _hasPendingOp(karter, addon_filename, op){
 let isAddonDeletionPending = async (karter, addon_filename) => await _hasPendingOp(karter, addon_filename, "deletion")
 let isAddonDisablementPending = async (karter, addon_filename) => await _hasPendingOp(karter, addon_filename, "disablement")
 
-module.exports= { MB_size, getKarters, karterReqCheck, getInstalledDir, getEnabledDir,
+module.exports= { getKarters, karterReqCheck, getInstalledDir, getEnabledDir,
                     getAddonPendingOpFile, addPendingOp, rmPendingOp, isAddonDeletionPending, isAddonDisablementPending,
                     listInstalledAddons, listEnabledAddons, isAddonInstalled, isAddonEnabled
                 }

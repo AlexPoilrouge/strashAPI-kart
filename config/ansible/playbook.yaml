@@ -40,6 +40,7 @@
         - { filename: "key.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config/auth" }
         - { filename: "clips.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
         - { filename: "addons.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
+        - { filename: "cfg.json", dest_dir: "{{ root_dir }}/{{ install_dir }}/config" }
       loop_control:
         loop_var: template_info
     - include_tasks: ./tasks/install_templates.yaml

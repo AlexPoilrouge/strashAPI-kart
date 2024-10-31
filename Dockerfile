@@ -1,4 +1,6 @@
-FROM archlinux:latest
+ARG MODE=regular
+
+FROM archlinux:latest AS base
 
 COPY ./docker/mirrorlist /etc/pacman.d/mirrorlist
 
@@ -21,10 +23,22 @@ WORKDIR /var/kartapi_source
 ARG VALUES_FILE=config/ansible/variables.yaml
 COPY ${VALUES_FILE}  /var/kartapi_source/config/ansible/variables.yaml
 
-RUN sh install.sh -d
 
-COPY test/config/admin_jwtRS256.key.pub test/config/jwtRS256.key.pub \
-                /var/api/strash-api/config/
+FROM base AS buid-regular
+
+RUN echo "Image build regular…"
+RUN sh install.sh
+
+
+FROM base AS build-tester
+
+RUN echo "Image build for tests…"
+
+COPY test test
+RUN sh install.sh -d -t
+
+
+FROM build-${MODE} AS final
 
 WORKDIR /var/api/strash-api
 

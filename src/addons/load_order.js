@@ -12,9 +12,6 @@ const ORDER_YAML_FILENAME_TMP_NEW= `${ORDER_YAML_FILENAME}.new`
 let hereLog= (...args) => {console.log("[addons_load_order]", ...args);};
 
 
-const ORDER_YAML_EXT= [".yaml",".yml"]
-const ORDER_YAML_MIMETYPES= ["text/plain","text/yaml","text/x-yaml","application/x-yaml","application/yaml"]
-
 const ORDER_YAML_SCHEMA = {
     type: 'object',
     properties: {
@@ -103,20 +100,6 @@ function validate_orderYaml(yamlDataText){
 }
 let validate_orderFile = (filepath) => validate_orderYaml(fs.readFileSync(filepath,'utf-8'))
 
-function orderYaml_fileFilter(req, file, cb){
-    if(!ORDER_YAML_EXT.includes(path.extname(file.originalname))){
-        hereLog(`fileFilter - file '${file.originalname}' has bad extension…`)
-        cb(new Error('File must have allowed filename extension'), false)
-    }
-    else if(!ORDER_YAML_MIMETYPES.includes(file.mimetype)){
-        hereLog(`fileFilter - file '${file.originalname}' has bad mimetype (${file.mimetype})…`)
-        cb(new Error('File with unallowed mime type'), false)
-    }
-    else{
-        cb(null, true);
-    }
-}
-
 const order_yaml_storage = multer.diskStorage({
     destination: (req, file, cb) => {
         cb(null, addons_config.racers[req.params.karter].directory);
@@ -129,10 +112,10 @@ const order_yaml_storage = multer.diskStorage({
 
 const addon_load_order= multer({
     storage: order_yaml_storage,
-    fileFilter: orderYaml_fileFilter,
+    fileFilter: utils.yaml_multer_fileFilter,
     limits: {
         files: 1,//per request
-        fieldSize: 16 * addons_utils.MB_size
+        fieldSize: 16 * utils.MB_size
     }
 });
 
@@ -172,18 +155,18 @@ function API_addons_load_order_install(req, res, next){
 function API_addons_load_order_download(req, res, next){
     var { url }= req.body
     const racer= req.params.karter
-    const fileSizeLimit= addons_config.file_size_MB * addons_utils.MB_size
+    const fileSizeLimit= addons_config.file_size_MB * utils.MB_size
 
     utils.fileInfo_preDownload(url).then( fileInfo => {
         if( fileInfo.fileSize > fileSizeLimit ){
             hereLog(`API_addons_LO_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
         }
-        else if(!ORDER_YAML_MIMETYPES.includes(fileInfo.mimetype)){
+        else if(!utils.YAML_MIMETYPES.includes(fileInfo.mimetype)){
             hereLog(`API_addons_LO_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimetype}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
-        else if(!ORDER_YAML_EXT.includes(path.extname(utils.getFilenameFromUrl(url)))){
+        else if(!utils.YAML_EXT.includes(path.extname(utils.getFilenameFromUrl(url)))){
             hereLog(`API_addons_LO_download - file at '${url}' seems to have bad extension.`)
             res.status(442).send({status: "file_bad_extension"})
         }

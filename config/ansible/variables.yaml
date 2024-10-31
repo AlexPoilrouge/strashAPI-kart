@@ -89,6 +89,7 @@ racers:
         cmd: "sh \\\"$( getent passwd 'strashbot' | cut -d: -f6 )/.ringracers/racer_operator.sh\\\" \\\"MODE_INFO\\\""
         timeout: 8000
     addons_directory: /home/strashbot/.ringracers/addons
+    cfg_directory: /home/strashbot/.ringracers/cfg
 
 others:
   - aliases:
