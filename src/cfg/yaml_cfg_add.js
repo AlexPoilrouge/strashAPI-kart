@@ -139,17 +139,17 @@ function API_custom_yaml_config_download(req, res, next){
     const fileSizeLimit= 4 * utils.MB_size
 
     utils.fileInfo_preDownload(url).then( fileInfo => {
-        let filename= getFilenameFromUrl(url);
+        let filename= utils.getFilenameFromUrl(url);
         if( fileInfo.fileSize > fileSizeLimit ){
             hereLog(`API_yaml_cfg_download - file at '${url}' seems to heavy: ${fileInfo.fileSize} > ${fileSizeLimit}`)
             res.status(440).send({status: "file_too_heavy"})
         }
         else if(!utils.YAML_MIMETYPES.includes(fileInfo.mimetype)){
-            hereLog(`API_yaml_cfg_download - file at '${url}' seems to have bad mimetype: ${fileInfo.mimetype}`)
+            hereLog(`[API_yaml_cfg_download] - file at '${url}' seems to have bad mimetype: ${fileInfo.mimetype}`)
             res.status(441).send({status: "file_bad_mimetype"})
         }
         else if(!utils.YAML_EXT.includes(path.extname(filename))){
-            hereLog(`API_yaml_cfg_download - file at '${url}' seems to have bad extension.`)
+            hereLog(`[API_yaml_cfg_download] - file at '${url}' seems to have bad extension.`)
             res.status(442).send({status: "file_bad_extension"})
         }
         else{
@@ -160,13 +160,13 @@ function API_custom_yaml_config_download(req, res, next){
                 next()
             })
             .catch(err => {
-                hereLog(`[API_addons_download] failed fetching addon from '${url}' - ${err}`)
+                hereLog(`[API_yaml_cfg_download] failed fetching addon from '${url}' - ${err}`)
                 res.status(513).send({status: 'addon_download_failed'})
             })
         }
     } )
     .catch(err => {
-        hereLog(`[API_addons_download] error ${err}`)
+        hereLog(`[API_yaml_cfg_download] error ${err}`)
         res.status(500).send({status: "internal_error"})
     })
 }
