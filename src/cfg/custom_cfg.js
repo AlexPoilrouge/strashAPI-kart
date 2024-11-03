@@ -17,23 +17,11 @@ let customCfg_fileMatch= data => CUSTOM_CFG_LINE_FILE_REGEX.exec(data);
 let hereLog= (...args) => {console.log("[cfg - custom]", ...args);};
 
 
-const CUSTOM_CONFIG_HEADER_YAML_SCHEMA= {
-    type: "object",
-    properties: {
-        name: { type: "string" },
-        triggertime: { type: "string" }
-    },
-    required: ["name", "triggertime"],
-    additionalProperties: true
-};
-
-
 function getConfigFromCustomCfg(karter){
     try{
         let customCfg_filepath= cfg_utils.get_CustomCfgFile(karter);
-
+        
         const data = fs.readFileSync(customCfg_filepath, 'utf8');
-
         var configs = [];
         var matchName, matchFile;
 
@@ -93,19 +81,19 @@ function API_getCustomConfig(req, res, next){
         return res.status(404).send({status: "not_found"});
     }
 
-    let customConfigFile= path.join(cfg_utils.getCustomConfigSubdir(karter, true), matchingConfig.filename);
+    let customConfigFile= path.join(cfg_utils.getCustomConfigSubdir(racer, true), matchingConfig.filename);
     if(!fs.existsSync(customConfigFile)){
         hereLog(`[customConfigGet] file '${customConfigFile}' is actually non-existent`)
         res.status(404).send({status: "absent"})
     }
     else{
-        res.sendFile(orderOps_yaml_file, err => {
+        res.sendFile(customConfigFile, err => {
             if(err){
                 hereLog(`[customConfigGet] error: ${err}`)
                 res.status(500).send({status: "internal_query_error"});
             }
             else{
-                hereLog(`[customConfigGet] fetched ${orderOps_yaml_file}…`)
+                hereLog(`[customConfigGet] fetched ${customConfigFile}…`)
             }
         })
     }
@@ -174,4 +162,4 @@ let API_enableCustomConfig= (req, res, next) => API_triggerChangeCustomConfig(re
 
 module.exports= { API_customConfigInfo, API_getCustomConfig,
     API_disableCustomConfig, API_enableCustomConfig,
- } 
+ }

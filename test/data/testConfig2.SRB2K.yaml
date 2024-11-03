@@ -1,0 +1,14 @@
+name: "srb2k_test2"
+triggertime: '* * * * 1'
+configuration:
+  commands:
+  - command: kartspeed
+    arguments: [ '1' ]
+  - command: advertise
+    arguments: [ 'off' ]
+  addons:
+    enable:
+      - "lol.pk3"
+      - "meh.wad"
+    disable:
+      - "bad.pk3"

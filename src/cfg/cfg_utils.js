@@ -28,6 +28,17 @@ const ALLOWED_CMD_YAML_SCHEMA= {
     additionalProperties: false  // No extra properties allowed
 };
 
+const CUSTOM_CONFIG_HEADER_YAML_SCHEMA= {
+    type: "object",
+    properties: {
+        name: { type: "string" },
+        triggertime: { type: "string" }
+    },
+    required: ["name", "triggertime"],
+    additionalProperties: true
+};
+
+
 
 let hereLog= (...args) => {console.log("[cfg_utils]", ...args);};
 
@@ -136,7 +147,7 @@ module.exports= {
     getCfgDir, getCustomConfigSubdir,
     get_CustomCfgFile, get_allowedCommandsYamlFile,
     getAllowedCommands, ALLOWED_CMD_YAML_SCHEMA,
-    getCustomConfigList,
+    getCustomConfigList, CUSTOM_CONFIG_HEADER_YAML_SCHEMA,
 }
 
 
