@@ -130,7 +130,7 @@ function getCustomConfigList(karter){
                         configs.push({ name, triggertime, filename: file });
                     }
                 } catch (err) {
-                    console.error(`[get_custom_cfg_yaml] Error reading/parsing yaml file ${file}:`, err);
+                    hereLog(`[get_custom_cfg_yaml] Error reading/parsing yaml file ${file}:`, err);
                 }
             }
         }

@@ -103,7 +103,8 @@ function API_getCustomConfig(req, res, next){
 function changeCfgYamlTriggerTime(karter, cfgYaml_filename, cron_string){
     try{
         let cfgYamlFile= path.join(cfg_utils.getCustomConfigSubdir(karter, true), cfgYaml_filename)
-        var yaml_data= utils.load_yamlData(cfgYamlFile)
+        let cfgYamlData= fs.readFileSync(cfgYamlFile, 'utf8');
+        var yaml_data= utils.load_yamlData(cfgYamlData)
 
         yaml_data.triggertime= cron_string
 
@@ -149,7 +150,7 @@ function API_triggerChangeCustomConfig(req, res, next){
         })
     }
     else{
-        hereLog(`[disableConfig] error: ${err}`)
+        hereLog(`[disableConfig] error`)
         res.status(500).send({status: "internal_query_error"});
     }
 

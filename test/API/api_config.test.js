@@ -60,6 +60,11 @@ const test_config2YamlCfg_data= yaml.load(fs.readFileSync(
 ))
 const test_config2YamlCfg_url=`${remote_test_addons_location_url}/${test_config2YamlCfg_filename}`
 
+const test_order_yaml1_filepath= path.resolve(__dirname, "../data/ordering_addons_1.yaml")
+const test_addon1_filename= "test.pk3"
+const test_addon1_url= `${remote_test_addons_location_url}/${test_addon1_filename}`
+
+
 describe("nothing info", () => {
     test("GET /config/ringracers/info", async () => {
         await request(f_addr)
@@ -205,3 +210,144 @@ describe("config add (from url)", () => {
     })
 })
 
+describe( "bad uploads", () => {
+    test("PUT /config/ringracers/custom (bad config commands from url)(admin auth)", async () => {
+        await request(f_addr)
+            .put("/config/ringracers/custom")
+            .set("x-access-token", admin_token)
+            .send({url: test_config2YamlCfg_url})
+            .expect(415)
+    })
+
+    test("PUT /config/srb2kart/custom (bad config commands file)(admin auth)", async () => {
+        await request(f_addr)
+            .put("/config/srb2kart/custom")
+            .set("x-access-token", admin_token)
+            .attach('file', test_config1YamlCfg_filepath)
+            .expect(415)
+    })
+
+    test("PUT /config/ringracers/custom (wrong yaml schema file)(admin auth)", async () => {
+        await request(f_addr)
+            .put("/config/ringracers/custom")
+            .set("x-access-token", admin_token)
+            .attach('file', test_order_yaml1_filepath)
+            .expect(415)
+    })
+
+    test("PUT /config/ringracers/custom (wrong file type from url)(admin auth)", async () => {
+        await request(f_addr)
+            .put("/config/ringracers/custom")
+            .set("x-access-token", admin_token)
+            .send({url: test_addon1_url})
+            .expect(441)
+    })
+})
+
+describe( "enable/disable", () => {
+    test("POST /config/srb2kart/disable (no auth)", async () => {
+        await request(f_addr)
+            .post(`/config/srb2kart/${test_config2YamlCfg_data.name}/disable`)
+            .expect(403)
+    })
+
+    test("POST /config/srb2kart/(name)/disable (admin auth)", async () => {
+        await request(f_addr)
+            .post(`/config/srb2kart/${test_config2YamlCfg_data.name}/disable`)
+            .set("x-access-token", admin_token)
+            .expect(200).then(res => {
+                expect(res.body.status).toEqual('disabled')
+                expect(res.body.triggertime).toEqual('never')
+            })
+
+        await request(f_addr)
+            .get(`/config/srb2kart/info`)
+            .expect(200).then(res => {
+                expect(res.body.custom_cfg.available_configs[0].name)
+                    .toEqual(test_config2YamlCfg_data.name)
+                expect(res.body.custom_cfg.available_configs[0].triggertime).toEqual('never')
+            })
+    })
+
+    test("POST /config/ringracers/(name)/enable (no auth)", async () => {
+        await request(f_addr)
+            .post(`/config/ringracers/${test_config1YamlCfg_data.name}/enable`)
+            .send({triggertime: "* * * 5 *"})
+            .expect(403)
+    })
+
+    test("POST /config/ringracers/(name)/enable (admin auth)", async () => {
+        await request(f_addr)
+            .post(`/config/ringracers/${test_config1YamlCfg_data.name}/enable`)
+            .set("x-access-token", admin_token)
+            .send({triggertime: "* * * 5 *"})
+            .expect(200).then(res => {
+                expect(res.body.status).toEqual('enabled')
+                expect(res.body.triggertime).toEqual('* * * 5 *')
+            })
+
+        await request(f_addr)
+            .get(`/config/ringracers/info`)
+            .expect(200).then(res => {
+                expect(res.body.custom_cfg.available_configs[0].name)
+                    .toEqual(test_config1YamlCfg_data.name)
+                expect(res.body.custom_cfg.available_configs[0].triggertime).toEqual('* * * 5 *')
+            })
+    })
+
+    test("POST /config/ringracers/(name)/enable (bad cron)(admin auth)", async () => {
+        await request(f_addr)
+            .post(`/config/ringracers/${test_config1YamlCfg_data.name}/enable`)
+            .set("x-access-token", admin_token)
+            .send({triggertime: 'yellow noob'})
+            .expect(400).then(res => {
+                expect(res.body.status).toEqual('invalid_cron_string')
+            })
+        
+        await request(f_addr)
+            .get(`/config/ringracers/info`)
+            .expect(200).then(res => {
+                expect(res.body.custom_cfg.available_configs[0].name)
+                    .toEqual(test_config1YamlCfg_data.name)
+                expect(res.body.custom_cfg.available_configs[0].triggertime).toEqual('* * * 5 *')
+            })
+    })
+})
+
+describe( "simple delete", () => {
+    test("DELETE /config/srb2kart/(name) (no auth)", async () => {
+        await request(f_addr)
+            .delete(`/config/srb2kart/${test_config2YamlCfg_data.name}`)
+            .expect(403)
+    })
+
+    test("DELETE /config/srb2kart/(name) (admin auth)", async () => {
+        await request(f_addr)
+            .delete(`/config/srb2kart/${test_config2YamlCfg_data.name}`)
+            .set("x-access-token", admin_token)
+            .expect(200).then(res => {
+                expect(res.body.removed).toEqual(test_config2YamlCfg_filename)
+            })
+
+        await request(f_addr)
+            .get(`/config/srb2kart/info`)
+            .expect(200).then(res => {
+                expect(res.body.custom_cfg.available_configs.length).toEqual(0)
+            })
+
+        await request(f_addr)
+            .get(`/config/srb2kart/${test_config2YamlCfg_filename}`)
+            .expect(404)
+        
+        await request(f_addr)
+            .delete(`/config/srb2kart/${test_config2YamlCfg_data.name}`)
+            .set("x-access-token", admin_token)
+            .expect(404)
+        
+        await request(f_addr)
+            .get(`/config/ringracers/info`)
+            .expect(200).then(res => {
+                expect(res.body.custom_cfg.available_configs.length).toEqual(1)
+            })
+    })
+})

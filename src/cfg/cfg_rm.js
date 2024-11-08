@@ -24,7 +24,7 @@ function API_removeCustomConfig(req, res, next){
         return res.status(404).send({status: "not_found"});
     }
 
-    let customConfigFile= path.join(cfg_utils.getCustomConfigSubdir(karter, true), matchingConfig.filename);
+    let customConfigFile= path.join(cfg_utils.getCustomConfigSubdir(racer, true), matchingConfig.filename);
     if(!fs.existsSync(customConfigFile)){
         hereLog(`[API_rm_cfg] file '${customConfigFile}' is actually non-existent`)
         res.status(404).send({status: "absent"})
