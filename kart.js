@@ -49,7 +49,16 @@ const swaggerOptions= {
                 url: `http${config.api.HAS_HTTPS?'s':''}://${config.api.HOST}/${config.api.BASE_PATH}`
 
             }
-        ]
+        ],
+        components: {
+            securitySchemes: {
+                XAccessToken: {
+                    type: 'apiKey',
+                    in: 'header',
+                    name: 'x-access-token'
+                }
+            }
+        }
     },
     apis: ['kart.js']
 }
@@ -142,10 +151,8 @@ app.get("/service/:karter", (req, res) => {
  *           in: path
  *           required: true
  *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *      security:
+ *         - XAccessToken: []
  *      responses:
  *          200:
  *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
@@ -193,10 +200,8 @@ app.get("/service/restart/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
  *           in: path
  *           required: true
  *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *      security:
+ *         - XAccessToken: []
  *      responses:
  *          200:
  *              description: JSON field status gives info about service state UP, DOWN, or UNAVAILABLE
@@ -291,11 +296,8 @@ app.get("/clips", API_requestClipsPages);
  *       tags:
  *         - clips
  *       description: add a new clip to the database
- *       parameters:
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *       security:
+ *         - XAccessToken: []
  *       requestBody:
  *         required: true
  *         content:
@@ -352,10 +354,8 @@ app.post("/clip/new", API_verifyTokenFromPOSTBody, API_requestInsertClip);
  *              schema:
  *                  type: integer
  *                  format: int64
- *            - name: x-access-token
- *              in: header
- *              required: true
- *              type: string
+ *          security:
+ *            - XAccessToken: []
  *          requestBody:
  *              required: false
  *              content:
@@ -396,10 +396,8 @@ app.put("/clip/:clipId", API_verifyTokenFromPOSTBody, API_requestEditClip);
  *                schema:
  *                  type: integer
  *                  format: int64
- *              - name: x-access-token
- *                in: header
- *                required: true
- *                type: string
+ *          security:
+ *              - XAccessToken: []
  *          requestBody:
  *              required: false
  *              content:
@@ -437,6 +435,8 @@ require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
  *       The file can be uploaded as multipart/form-data, or the URL to the file can be sent in the request body.
  *     tags:
  *       - addons
+ *     security:
+ *       - XAccessToken: []
  *     parameters:
  *       - name: karter
  *         in: path
@@ -444,10 +444,6 @@ require('./src/clip/clip_thumbnail').setClipsThumbnailFileEntryPoint(app)
  *         schema:
  *           type: string
  *         description: The karter identifier.
- *       - name: x-access-token
- *         in: header
- *         required: true
- *         type: string
  *     requestBody:
  *       required: true
  *       content:
@@ -642,10 +638,8 @@ app.get("/addons/:karter/info", addons_karterReqCheck, API_getAddonsInfos)
  *           in: path
  *           required: true
  *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *       security:
+ *         - XAccessToken: []
  *       requestBody:
  *         required: true
  *         content:
@@ -693,10 +687,8 @@ app.post("/addons/:karter/enable", addons_karterReqCheck, API_verifyTokenFromPOS
  *           in: path
  *           required: true
  *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *       security:
+ *         - XAccessToken: []
  *       requestBody:
  *         required: true
  *         content:
@@ -744,10 +736,8 @@ app.post("/addons/:karter/disable", addons_karterReqCheck, API_verifyTokenFromPO
  *           in: path
  *           required: true
  *           type: string
- *         - name: x-access-token
- *           in: header
- *           required: true
- *           type: string
+ *       security:
+ *         - XAccessToken: []
  *       requestBody:
  *         required: true
  *         content:
@@ -832,10 +822,8 @@ app.get("/addons/:karter/load_order", addons_karterReqCheck,
  *          type: string
  *        required: true
  *        description: The karter identifier.
- *      - name: x-access-token
- *        in: header
- *        required: true
- *        type: string
+ *    security:
+ *      - XAccessToken: []
  *    requestBody:
  *      required: true
  *      content:
@@ -1129,10 +1117,8 @@ app.get("/config/:karter/:name", cfg_karterReqCheck, API_getCustomConfig)
  *        description: The unique identifier for the karter (racer).
  *        schema:
  *          type: string
- *      - name: x-access-token
- *        in: header
- *        required: true
- *        type: string
+ *    security:
+ *      - XAccessToken: []
  *    requestBody:
  *      required: true
  *      content:
@@ -1311,10 +1297,8 @@ app.put("/config/:karter/custom", cfg_karterReqCheck, API_verifyTokenFromPOSTBod
  *        description: Name or filename of the custom configuration to delete.
  *        schema:
  *          type: string
- *      - name: x-access-token
- *        in: header
- *        required: true
- *        type: string
+ *    security:
+ *      - XAccessToken: []
  *    responses:
  *      200:
  *        description: Configuration file successfully deleted.
@@ -1402,10 +1386,8 @@ app.delete("/config/:karter/:name", cfg_karterReqCheck, API_verifyTokenFromPOSTB
  *        description: Name or filename of the custom configuration to disable.
  *        schema:
  *          type: string
- *      - name: x-access-token
- *        in: header
- *        required: true
- *        type: string
+ *    security:
+ *      - XAccessToken: []
  *    responses:
  *      200:
  *        description: Configuration successfully disabled.
@@ -1505,10 +1487,8 @@ app.post("/config/:karter/:name/disable", cfg_karterReqCheck, API_verifyTokenFro
  *        description: Name or filename of the custom configuration to enable.
  *        schema:
  *          type: string
- *      - name: x-access-token
- *        in: header
- *        required: true
- *        type: string
+ *    security:
+ *      - XAccessToken: []
  *    requestBody:
  *      required: true
  *      content:
