@@ -11,9 +11,6 @@ const cfg_utils= require("./cfg_utils");
 const CUSTOM_CFG_LINE_NAME_REGEX= /\/\/\s*name:(.+)/g;
 const CUSTOM_CFG_LINE_FILE_REGEX= /\/\/\s*file:(.+)/g;
 
-let customCfg_nameMatch= data => CUSTOM_CFG_LINE_NAME_REGEX.exec(data);
-let customCfg_fileMatch= data => CUSTOM_CFG_LINE_FILE_REGEX.exec(data);
-
 let hereLog= (...args) => {console.log("[cfg - custom]", ...args);};
 
 
@@ -26,8 +23,11 @@ function getConfigFromCustomCfg(karter){
         var matchName, matchFile;
 
         // Find all name and file matches
-        while ((matchName = customCfg_nameMatch(data))
-            && (matchFile = customCfg_fileMatch(data))
+        //  > we clone regex in case of concurent access (.last_index updates)
+        nameMatch_regex= structuredClone(CUSTOM_CFG_LINE_NAME_REGEX)
+        fileMatch_regex= structuredClone(CUSTOM_CFG_LINE_FILE_REGEX)
+        while ((matchName = nameMatch_regex.exec(data))
+            && (matchFile = fileMatch_regex.exec(data))
         ) {
             configs.push({
                 name: matchName[1].trim(),
