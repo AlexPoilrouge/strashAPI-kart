@@ -19,6 +19,7 @@
         },{% endif %}
 
         {% if racer.default is defined and racer.default %}"default": true,{% endif %}
+        {% if racer.password_file is defined and racer.password_file %}"password_file": "{{ racer.password_file }}",{% endif %}
 
         "thumbnail": "{{ racer.thumbnail_url }}"
     }{% if not loop.last %},{% endif %}

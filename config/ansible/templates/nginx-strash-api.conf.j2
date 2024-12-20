@@ -6,8 +6,37 @@ server{
     error_log /var/log/nginx/strash-api-kart-error.log;
 
     location ~ ^/kart/ {
-        # for debug only
-        {% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Origin *;
+        # for debug only (CORS enable for swagger UI working in test)
+        # Refs:
+        #  - https://swagger.io/docs/open-source-tools/swagger-ui/usage/cors/#enabling-cors
+        #  - https://enable-cors.org/server_nginx.html
+        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Origin *;
+
+        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Headers 'Content-Type,api_key,Authorization';
+
+        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Methods 'GET, POST, DELETE, PUT';
+
+        add_header Access-Control-Allow-Origin *;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, x-access-token, apiKey, api_key";
+        add_header Access-Control-Allow-Credentials true;
+
+        # Handle preflight requests
+        if ($request_method = OPTIONS) {
+            add_header Access-Control-Allow-Origin *;
+            add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+            add_header Access-Control-Allow-Headers "Authorization, Content-Type, x-access-token, apiKey, api_key";
+            add_header Content-Length 0;
+            add_header Content-Type text/plain;
+            return 204;
+        }
+        if ($request_method = 'GET') {
+            add_header 'Access-Control-Allow-Origin' '*' always;
+            add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
+            add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,x-access-token,apiKey,api_key' always;
+            add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
+        }
+
         
         rewrite ^/kart/(.*) /$1 break;
         proxy_pass http://{{ api.nginx.access_addr }}:{{ api.nginx.access_port }};

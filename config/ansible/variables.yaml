@@ -90,6 +90,7 @@ racers:
         timeout: 8000
     addons_directory: /home/strashbot/.ringracers/addons
     cfg_directory: /home/strashbot/.ringracers/cfg
+    password_file: /home/strashbot/.ringracers/.TMP_PASS
 
 others:
   - aliases:

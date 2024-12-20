@@ -6,6 +6,7 @@ const path = require('path')
 
 const { process_kart_info_args, about_kart_service, restart_service, stop_service }= require("./src/serv_works");
 
+const { API_getKarterPassword }= require('./src/password')
 const { API_requestClipById, API_requestClipsPages, API_requestInsertClip, API_requestEditClip, API_requestDeleteClip }= require("./src/clip/serv_clips");
 const { API_addons_download, API_addons_install }= require("./src/addons/add")
 const { API_getAddonsInfos }= require("./src/addons/infos")
@@ -236,6 +237,83 @@ app.get("/service/stop/:karter", API_verifyTokenFromPOSTBody, (req, res) => {
             res.status(500).send({status: "ERROR"});
     })
 })
+
+/**
+ * @swagger
+ * /password/{karter}:
+ *  get:
+ *    tags:
+ *      - base
+ *    summary: Retrieve the password for a specific karter
+ *    description: >
+ *      Fetches the password associated with a given karter. 
+ *      Only users with valid authentication tokens are authorized.
+ *    parameters:
+ *      - name: karter
+ *        in: path
+ *        required: true
+ *        description: The unique identifier for the karter whose password is being retrieved.
+ *        schema:
+ *          type: string
+ *    security:
+ *      - XAccessToken: []
+ *    responses:
+ *      200:
+ *        description: Password successfully retrieved.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                password:
+ *                  type: string
+ *                  example: "Secret_P@ssw0rd_1234"
+ *      401:
+ *        description: Authentification error - bad, invalid, or expired token?
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: bad_auth_token
+ *                error:
+ *                  type: string
+ *      403:
+ *        description: Forbidden acces - token needed.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: forbidden
+ *                error:
+ *                  type: string
+ *      404:
+ *        description: Password file not found for the specified karter.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: not_found
+ *      500:
+ *        description: Internal server error while fetching the password.
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              properties:
+ *                status:
+ *                  type: string
+ *                  example: internal_query_error
+ */
+app.get("/password/:karter", API_verifyTokenFromPOSTBody, API_getKarterPassword)
 
 /**
  * @swagger

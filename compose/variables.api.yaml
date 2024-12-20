@@ -88,6 +88,7 @@ racers:
         timeout: 8000
     addons_directory: /home/strashbot/.ringracers/addons
     cfg_directory: /home/strashbot/.ringracers/cfg
+    password_file: /home/strashbot/.ringracers/.TMP_PASS
   - name: srb2kart
     port: 5028
     thumbnail_url: http://strashbot.fr/img/server/active_thumb.png
@@ -113,6 +114,7 @@ racers:
         timeout: 5000
     addons_directory: /home/strashbot/.srb2kart/addons  
     cfg_directory: /home/strashbot/.srb2kart/cfg  
+    password_file: /home/strashbot/.srb2kart/.TMP_PASS
 
 others:
   - aliases:
