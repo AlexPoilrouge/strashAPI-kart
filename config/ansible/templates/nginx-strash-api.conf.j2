@@ -10,12 +10,7 @@ server{
         # Refs:
         #  - https://swagger.io/docs/open-source-tools/swagger-ui/usage/cors/#enabling-cors
         #  - https://enable-cors.org/server_nginx.html
-        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Origin *;
-
-        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Headers 'Content-Type,api_key,Authorization';
-
-        #{% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Methods 'GET, POST, DELETE, PUT';
-
+        {% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and api.test.allow_orig %}
         add_header Access-Control-Allow-Origin *;
         add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
         add_header Access-Control-Allow-Headers "Authorization, Content-Type, x-access-token, apiKey, api_key";
@@ -35,8 +30,7 @@ server{
             add_header 'Access-Control-Allow-Methods' 'GET, POST, OPTIONS' always;
             add_header 'Access-Control-Allow-Headers' 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,x-access-token,apiKey,api_key' always;
             add_header 'Access-Control-Expose-Headers' 'Content-Length,Content-Range' always;
-        }
-
+        }{% endif %}
         
         rewrite ^/kart/(.*) /$1 break;
         proxy_pass http://{{ api.nginx.access_addr }}:{{ api.nginx.access_port }};

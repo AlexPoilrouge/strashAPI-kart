@@ -14,7 +14,7 @@ function readPasswordFromFile(karter){
 
     try{
         password= fs.readFileSync(getPasswordFilePath(karter), 'utf8');
-        password.split(/\r?\n/)[0];
+        password= password.split(/\r?\n/)[0];
     }
     catch(err){
         hereLog(`Couldn't fetch ${karter} password - ${err}`)
@@ -27,17 +27,13 @@ function readPasswordFromFile(karter){
 
 function API_getKarterPassword(req, res, next){
     const racer= req.params.karter
-    hereLog(`eeeee${racer}`)
     try{
-        hereLog("dsdzsd")
         let password= readPasswordFromFile(racer)
 
         if(!Boolean(password)){
-            hereLog('AAAAAA')
             res.status(404).send({status: "not_found"});
         }
         else{
-            hereLog('BBBBBBBB')
             res.status(200).send({password})
         }
     }
