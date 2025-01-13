@@ -5,6 +5,8 @@ server{
     access_log /var/log/nginx/strash-api-kart-access.log;
     error_log /var/log/nginx/strash-api-kart-error.log;
 
+    client_max_body_size 128M;
+
     location ~ ^/kart/ {
         # for debug only (CORS enable for swagger UI working in test)
         # Refs:

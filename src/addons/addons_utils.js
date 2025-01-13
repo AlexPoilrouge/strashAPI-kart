@@ -138,7 +138,7 @@ function _removePendingOpData(in_out_pendingOp_data, op, addon_filename){
 }
 
 function _addPendingOpData(in_out_pendingOp_data, op, addon_filename){
-    var found_check= Boolean(in_out_pendingOp_data[op].find(fn => (addon_filename!==fn) ))
+    var found_check= Boolean(in_out_pendingOp_data[op].find(fn => (addon_filename===fn) ))
 
     if(!found_check){
         in_out_pendingOp_data[op].push(addon_filename)
