@@ -42,6 +42,7 @@ api:
     clips:
       thumbnail_gen_cmd: "ffmpeg -i '__url__' -qscale:v __sectime__ -frames:v __framenum__ -vf scale=__outsize__ __outfilename__"
       thumbnail_survey_cron_string: "* 6 * * *"
+  file_fetch_max_size_mb: 256
 
 mongo_db:
   username: strashbot

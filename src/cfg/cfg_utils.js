@@ -14,6 +14,9 @@ const default_customCfg_content= "// found nothing\nwait\n"
 const default_allowedCommands_yaml_content= "allowed_commands: []\n"
 
 
+const TRIGGERTIME_DISABLE_STRING_LC= 'never'
+const TRIGGERTIME_DEFAULT_STRING_LC= 'default'
+
 const ALLOWED_CMD_YAML_SCHEMA= {
     type: "object",
     properties: {
@@ -145,6 +148,7 @@ function getCustomConfigList(karter){
 module.exports= {
     getKarters, karterReqCheck,
     getCfgDir, getCustomConfigSubdir,
+    TRIGGERTIME_DISABLE_STRING_LC, TRIGGERTIME_DEFAULT_STRING_LC,
     get_CustomCfgFile, get_allowedCommandsYamlFile,
     getAllowedCommands, ALLOWED_CMD_YAML_SCHEMA,
     getCustomConfigList, CUSTOM_CONFIG_HEADER_YAML_SCHEMA,

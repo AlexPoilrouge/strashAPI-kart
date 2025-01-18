@@ -3,7 +3,7 @@
         # for debug only
         {% if (api is defined) and (api.test is defined) and (api.test.allow_orig is defined) and not api.test.allow_orig %}# {% endif %}add_header Access-Control-Allow-Origin *;
         
-        client_max_body_size 128M;
+        client_max_body_size {{ api.file_fetch_max_size_mb|default(128) }}M;
 
         rewrite ^/kart/(.*) /$1 break;
         proxy_pass http://{{ api.nginx.access_addr }}:{{ api.nginx.access_port }};

@@ -5,7 +5,7 @@
         }{% if not loop.last %},{% endif %}{% endfor %}
 
     },
-    "file_size_MB": 256,
+    "file_size_MB": {{ api.file_fetch_max_size_mb|default(128) }},
     "allowed_filenameExt": [
         ".cfg",
         ".kart",

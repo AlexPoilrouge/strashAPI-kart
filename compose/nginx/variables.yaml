@@ -6,3 +6,4 @@ api:
     access_port: 6029
     access_server_names:
       - "localhost"
+  file_fetch_max_size_mb: 256

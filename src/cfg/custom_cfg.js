@@ -118,12 +118,10 @@ function changeCfgYamlTriggerTime(karter, cfgYaml_filename, cron_string){
     }
 }
 
-const TRIGGERTIME_DISABLE_STRING_LC= 'never'
-
 function API_triggerChangeCustomConfig(req, res, next){
     const racer= req.params.karter
     const configName= req.params.name
-    const cron_string= req.body.triggertime ?? TRIGGERTIME_DISABLE_STRING_LC
+    const cron_string= req.body.triggertime ?? cfg_utils.TRIGGERTIME_DISABLE_STRING_LC
     
     let availableCustomsConfigs= cfg_utils.getCustomConfigList(racer);
     if(!availableCustomsConfigs){
@@ -137,7 +135,10 @@ function API_triggerChangeCustomConfig(req, res, next){
     if(!matchingConfig){
         return res.status(404).send({status: "not_found"});
     }
-    if((!cron_validate(cron_string)) && cron_string.toLowerCase()!==TRIGGERTIME_DISABLE_STRING_LC){
+    if((!cron_validate(cron_string)) &&
+        !( [cfg_utils.TRIGGERTIME_DEFAULT_STRING_LC,
+            cfg_utils.TRIGGERTIME_DISABLE_STRING_LC ].includes(cron_string.toLowerCase()) )
+    ){
         return res.status(400).send({
             status: "invalid_cron_string"
         })
@@ -145,7 +146,11 @@ function API_triggerChangeCustomConfig(req, res, next){
 
     if(changeCfgYamlTriggerTime(racer, matchingConfig.filename, cron_string)){
         return res.status(200).send({
-            status: (cron_string.toLowerCase()===TRIGGERTIME_DISABLE_STRING_LC? "disabled" : "enabled"),
+            status: (cron_string.toLowerCase()===cfg_utils.TRIGGERTIME_DISABLE_STRING_LC?
+                        "disabled"
+                    : (cron_string.toLowerCase()===cfg_utils.TRIGGERTIME_DEFAULT_STRING_LC) ? 
+                        "default"
+                    :   "enabled"),
             triggertime: cron_string 
         })
     }
@@ -156,7 +161,7 @@ function API_triggerChangeCustomConfig(req, res, next){
 
 }
 function API_disableCustomConfig(req, res, next){
-    req.body.triggertime= TRIGGERTIME_DISABLE_STRING_LC;
+    req.body.triggertime= cfg_utils.TRIGGERTIME_DISABLE_STRING_LC;
     return API_triggerChangeCustomConfig(req,res,next);
 }
 let API_enableCustomConfig= (req, res, next) => API_triggerChangeCustomConfig(req,res,next);

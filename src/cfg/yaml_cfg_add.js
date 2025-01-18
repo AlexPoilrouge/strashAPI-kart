@@ -122,8 +122,11 @@ const config_yaml_cfg= multer({
 function validate_cfgYaml(yamlDataText, karter){
     let data= utils.validateYaml(yamlDataText, CFG_YAML_SCHEMA)
 
-    if((!cron_validate(data.triggertime)) && data.triggertime.toLowerCase()!=='never'){
-        throw new utils.YamlReadError(`Invalid cron string for 'triggertime' (can also be 'never').`)
+    if((!cron_validate(data.triggertime)) && 
+        ![  cfg_utils.TRIGGERTIME_DEFAULT_STRING_LC,
+            cfg_utils.TRIGGERTIME_DISABLE_STRING_LC ].includes(data.triggertime)
+    ){
+        throw new utils.YamlReadError(`Invalid cron string for 'triggertime' (can also be 'never' or 'default').`)
     }
 
     let allowed_cmds= cfg_utils.getAllowedCommands(karter)
