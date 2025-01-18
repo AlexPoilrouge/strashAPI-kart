@@ -22,39 +22,80 @@ const ORDER_YAML_SCHEMA = {
           properties: {
             filename: {
               type: 'object',
-              properties: {
-                text: { type: 'string' },
-                regex: { type: 'string', pattern: '^.*$' }
-              },
-              additionalProperties: false
+              oneOf: [
+                { properties: {
+                    text: { type: 'string' },
+                  },
+                  required: ["text"],
+                  additionalProperties: false
+                }, {
+                  properties: {
+                    regex: { type: 'string', pattern: '^.*$' }
+                  },
+                  required: ["regex"],
+                  additionalProperties: false
+                }
+              ]
             },
             rules: {
               type: 'array',
               items: {
                 type: 'object',
-                properties: {
-                  before: {
-                    type: 'object',
-                    properties: {
-                      text: { type: 'string' },
-                      regex: { type: 'string', pattern: '^.*$' }
+                oneOf: [
+                  { properties: {
+                      before: {
+                        type: 'object',
+                        oneOf: [
+                          { properties: {
+                                text: { type: 'string' },
+                            },
+                            required: ["text"],
+                            additionalProperties: false
+                          },
+                          { properties: {
+                                regex: { type: 'string', pattern: '^.*$' }
+                            },
+                            required: ["regex"],
+                            additionalProperties: false
+                          }
+                        ]
+                      }
                     },
+                    required: ["before"],
                     additionalProperties: false
                   },
-                  after: {
-                    type: 'object',
-                    properties: {
-                      text: { type: 'string' },
-                      regex: { type: 'string', pattern: '^.*$' }
+                  { properties: {
+                      after: {
+                        type: 'object',
+                        oneOf: [
+                          { properties: {
+                                text: { type: 'string' },
+                            },
+                            required: ["text"],
+                            additionalProperties: false
+                          },
+                          { properties: {
+                                regex: { type: 'string', pattern: '^.*$' }
+                            },
+                            required: ["regex"],
+                            additionalProperties: false
+                          }
+                        ]
+                      },
                     },
+                    required: ["after"],
                     additionalProperties: false
                   },
-                  position: {
-                    type: 'string',
-                    enum: ['first', 'last']
+                  { properties: {
+                      position: {
+                        type: 'string',
+                        enum: ['first', 'last']
+                      }
+                    },
+                    required: ["position"],
+                    additionalProperties: false
                   }
-                },
-                additionalProperties: false
+                ]
               }
             }
           },

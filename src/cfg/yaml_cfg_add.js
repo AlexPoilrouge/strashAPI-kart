@@ -33,8 +33,26 @@ const CFG_YAML_SCHEMA = {
                 addons: {
                     type: "object",
                     properties: {
-                        enable: { type: "array", items: { type: "string" } },
-                        disable: { type: "array", items: { type: "string" } }
+                        enable: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                oneOf: [
+                                    { properties: { text: { type: "string" } }, required: ["text"], additionalProperties: false },
+                                    { properties: { regex: { type: "string", pattern: '^.*$' } }, required: ["regex"], additionalProperties: false }
+                                ]
+                            }
+                        },
+                        disable: {
+                            type: "array",
+                            items: {
+                                type: "object",
+                                oneOf: [
+                                    { properties: { text: { type: "string" } }, required: ["text"], additionalProperties: false },
+                                    { properties: { regex: { type: "string", pattern: '^.*$' } }, required: ["regex"], additionalProperties: false }
+                                ]
+                            }
+                        }
                     },
                     additionalProperties: false
                 }
@@ -120,6 +138,7 @@ function validate_cfgYaml(yamlDataText, karter){
 let validate_cfgYamlFile = (filepath, karter) => validate_cfgYaml(fs.readFileSync(filepath,'utf-8'), karter)
 
 function API_custom_yaml_config_install(req, res, next){
+    hereLog("GGGGGGGGGGGGGG API_custom_yaml_config_install")
     return config_yaml_cfg.single('file')(req, res, err => {
         if (err instanceof multer.MulterError) {
             // A Multer error occurred when uploading the file
@@ -172,6 +191,7 @@ function API_custom_yaml_config_download(req, res, next){
 }
 
 function API_config_set_cfg_yaml(req, res, next){
+    hereLog("rrrrrrrrrr API_config_set_cfg_yaml")
     let racer= req.params.karter
     let filepath= req.file.path
     var filename= undefined
